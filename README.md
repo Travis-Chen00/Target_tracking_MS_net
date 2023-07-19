@@ -1,1 +1,1 @@
-# Target_tracking_MS_net
+# Target Tracking with Minimal Surprise network
