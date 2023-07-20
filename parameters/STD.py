@@ -5,7 +5,7 @@ POP_SIZE = 50  #population
 MAX_TIME = 500  # time per run
 MAX_GENS = 100  # maximum generations
 
-REPETITIONS = 10  # repetitions of each individual
+REPETITIONS = 2  # repetitions of each individual
 NUM_AGENTS = 100
 
 # movement
@@ -36,7 +36,7 @@ PI = 3.14159265
 MIN = 0
 MAX = 1
 AVG = 2
-FIT_EVAL = MIN
+FIT_EVAL = MAX
 
 # define fitness function
 PRED = 0  # prediction

@@ -58,37 +58,37 @@ class SelfAssembly:
             self.p[i].heading.x = p_initial[i].heading.x
             self.p[i].heading.y = p_initial[i].heading.y
 
-            if self.manipulation is not None:
-                if self.p[i].type == LINE:
-                    if SENSOR_MODEL == STDSL:
-                        self.minimalSurprise.prediction.predictions[i][S0] = 1
-                        self.minimalSurprise.prediction.predictions[i][S5] = 1
-                    else:   # Forward & Backward will have agents
-                        self.minimalSurprise.prediction.predictions[i][S0] = 1
-                        self.minimalSurprise.prediction.predictions[i][S3] = 1
-
-                        if SENSOR_MODEL == STDL:    # 14 sensors
-                            self.minimalSurprise.prediction.predictions[i][S8] = 1
-                            self.minimalSurprise.prediction.predictions[i][S11] = 1
-                elif self.p[i].type == SQUARE:
-                    if SENSOR_MODEL == STDL:
-                        self.minimalSurprise.prediction.predictions[i][S3] = 1
-                        self.minimalSurprise.prediction.predictions[i][S11] = 1
-
-                elif self.p[i].type == DIAMOND:
-                    if SENSOR_MODEL == STDL:
-                        self.minimalSurprise.prediction.predictions[i][S1] = 1
-                        self.minimalSurprise.prediction.predictions[i][S2] = 1
-                        self.minimalSurprise.prediction.predictions[i][S3] = 1
-                        self.minimalSurprise.prediction.predictions[i][S9] = 1
-                        self.minimalSurprise.prediction.predictions[i][S10] = 1
-                        self.minimalSurprise.prediction.predictions[i][S11] = 1
-
-                elif self.p[i].type == PAIR:
-                    self.minimalSurprise.prediction.predictions[i][S0] = 1
-
-                elif self.p[i].type == AGGREGATION:
-                    self.minimalSurprise.prediction.predictions[i] = [1] * SENSORS
+            # if self.manipulation is not None:
+            #     if self.p[i].type == LINE:
+            #         if SENSOR_MODEL == STDSL:
+            #             self.minimalSurprise.prediction.predict_shape[i][S0] = 1
+            #             self.minimalSurprise.prediction.predict_shape[i][S5] = 1
+            #         else:   # Forward & Backward will have agents
+            #             self.minimalSurprise.prediction.predict_shape[i][S0] = 1
+            #             self.minimalSurprise.prediction.predict_shape[i][S3] = 1
+            #
+            #             if SENSOR_MODEL == STDL:    # 14 sensors
+            #                 self.minimalSurprise.prediction.predict_shape[i][S8] = 1
+            #                 self.minimalSurprise.prediction.predict_shape[i][S11] = 1
+            #     elif self.p[i].type == SQUARE:
+            #         if SENSOR_MODEL == STDL:
+            #             self.minimalSurprise.prediction.predict_shape[i][S3] = 1
+            #             self.minimalSurprise.prediction.predict_shape[i][S11] = 1
+            #
+            #     elif self.p[i].type == DIAMOND:
+            #         if SENSOR_MODEL == STDL:
+            #             self.minimalSurprise.prediction.predict_shape[i][S1] = 1
+            #             self.minimalSurprise.prediction.predict_shape[i][S2] = 1
+            #             self.minimalSurprise.prediction.predict_shape[i][S3] = 1
+            #             self.minimalSurprise.prediction.predict_shape[i][S9] = 1
+            #             self.minimalSurprise.prediction.predict_shape[i][S10] = 1
+            #             self.minimalSurprise.prediction.predict_shape[i][S11] = 1
+            #
+            #     elif self.p[i].type == PAIR:
+            #         self.minimalSurprise.prediction.predict_shape[i][S0] = 1
+            #
+            #     elif self.p[i].type == AGGREGATION:
+            #         self.minimalSurprise.prediction.predict_shape[i] = [1] * SENSORS
 
         while timeStep < maxTime:
             # determine occupied grid cells (0 - unoccupied, 1 - occupied)
@@ -118,22 +118,29 @@ class SelfAssembly:
                 elif SENSOR_MODEL == STDSL:
                     sensors = sensor.sensorModelSTDSL(i, grid, self.p)
 
+                # Get all sensor values from 15 * 15 grid
+                # Shape Line S0, S3, S8, S11 equals to 1
+                # At least 3 agents in one line
+
                 # print("Agent ", i, " Sensors: ", sensors)
                 # print("Agent ", i, " Prediction: ", self.minimalSurprise.prediction.predictions[i])
+
                 # Set sensor values to both networks
                 for j in range(SENSORS):
                     # set sensor values as ANN input values
                     inputA[j] = sensors[j]
                     inputP[j] = sensors[j]
 
-                    # count correct predictions
-                    if sensors[j] == self.minimalSurprise.prediction.predictions[i][j]:
-                        fit += 1
-                    # Count correct shape
-
-                    # set prediction counters
-                    predReturn[j] += self.minimalSurprise.prediction.predictions[i][j]
-                # End Sensor loops
+                #     # sensors ==> real sensor value
+                #     # prediction ==> output from the Prediction network
+                #     # count correct predictions
+                #     if sensors[j] == self.minimalSurprise.prediction.predictions[i][j]:
+                #         fit += 1
+                #     # Count correct shape
+                #
+                #     # set prediction counters
+                #     predReturn[j] += self.minimalSurprise.prediction.predictions[i][j]
+                # # End Sensor loops
 
                 # Propagate action network
                 # Input: current sensor values + last action
@@ -161,6 +168,13 @@ class SelfAssembly:
 
                 # Update the values
                 # self.p_next[i] = self.p[i]
+
+                # Calculate the fitness
+                for j in range(SENSORS):
+                    if sensors[j] == self.minimalSurprise.prediction.predictions[i][j]:
+                        fit += 1
+                    predReturn[j] += self.minimalSurprise.prediction.predictions[i][j]
+                    # End Sensor loops
 
                 # Check next action
                 # 0 == move straight; 1 == turn
@@ -223,6 +237,7 @@ class SelfAssembly:
             # Update positions
             temp = self.p_next
             self.p = temp
+            self.p_next = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]  # Reset p_next
         # End while loop
 
         # prediction counter
@@ -275,7 +290,6 @@ class SelfAssembly:
                 for k in range(CONNECTIONS):
                     self.minimalSurprise.action.weight_actionNet[ind][j][k] = random.uniform(-0.5, 0.5)
                     self.minimalSurprise.prediction.weight_predictionNet[ind][j][k] = random.uniform(-0.5, 0.5)
-
 
         # print("Action weight:", self.minimalSurprise.action.weight_actionNet)
         # print("Prediction weight:", self.minimalSurprise.prediction.weight_predictionNet)
@@ -360,14 +374,14 @@ class SelfAssembly:
                             store = True
 
                     # max fitness of Repetitions kept
-                    elif FIT_EVAL == "MAX":
+                    elif FIT_EVAL == MAX:
                         if tmp_fitness > fitness[ind]:
                             fitness[ind] = tmp_fitness
                             pred = self.minimalSurprise.prediction.pred_return.copy()
                             store = True
 
                     # average fitness of Repetitions
-                    elif FIT_EVAL == "AVG":
+                    elif FIT_EVAL == AVG:
                         fitness[ind] += tmp_fitness / REPETITIONS
                         pred = [pred[s] + self.minimalSurprise.prediction.pred_return[s] /
                                 REPETITIONS for s in range(SENSORS)]
@@ -390,10 +404,10 @@ class SelfAssembly:
                             for j in range(MAX_TIME):   # MAX_TIME = POP_SIZE * REPETITION
                                 tmp_action[i][j] = self.minimalSurprise.action.current_action[i][j]
                 # End repetitions loop
+                print("Score for population: ", ind + 1, "Score: ", fitness[ind])
 
                 # Average fitness of generation
                 avg += fitness[ind]
-                print("Average for generation: ", gen + 1, "Score: ", avg)
 
                 # store individual with maximum fitness
                 if fitness[ind] > max:
@@ -421,7 +435,8 @@ class SelfAssembly:
                         for k in range(MAX_TIME):
                             actionValues[j][k] = tmp_action[j][k]
                 # End Fitness store
-                print("Max for population: ", ind + 1, "Score: ", max)
+
+                print("Score for generation: ", gen + 1, "Score: ", max)
             # End population loop
 
             print(f"#{gen} {max} ({maxID})")
