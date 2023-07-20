@@ -52,15 +52,11 @@ class SelfAssembly:
 
         # Initialise agents
         for i in range(noagents):
+            # Set the initialised coordinates to each agent
             self.p[i].coord.x = p_initial[i].coord.x
             self.p[i].coord.y = p_initial[i].coord.y
             self.p[i].heading.x = p_initial[i].heading.x
             self.p[i].heading.y = p_initial[i].heading.y
-
-            self.p_next[i].coord.x = p_initial[i].coord.x
-            self.p_next[i].coord.y = p_initial[i].coord.y
-            self.p_next[i].heading.x = p_initial[i].heading.x
-            self.p_next[i].heading.y = p_initial[i].heading.y
 
             if self.manipulation is not None:
                 if self.p[i].type == LINE:
@@ -95,7 +91,6 @@ class SelfAssembly:
                     self.minimalSurprise.prediction.predictions[i] = [1] * SENSORS
 
         while timeStep < maxTime:
-
             # determine occupied grid cells (0 - unoccupied, 1 - occupied)
             # Locate all agents into the grid
             # Location with agent equals to 1
@@ -123,8 +118,8 @@ class SelfAssembly:
                 elif SENSOR_MODEL == STDSL:
                     sensors = sensor.sensorModelSTDSL(i, grid, self.p)
 
-                print("Agent ", i, " Sensors: ", sensors)
-                print("Agent ", i, " Prediction: ", self.minimalSurprise.prediction.predictions[i])
+                # print("Agent ", i, " Sensors: ", sensors)
+                # print("Agent ", i, " Prediction: ", self.minimalSurprise.prediction.predictions[i])
                 # Set sensor values to both networks
                 for j in range(SENSORS):
                     # set sensor values as ANN input values
@@ -132,7 +127,6 @@ class SelfAssembly:
                     inputP[j] = sensors[j]
 
                     # count correct predictions
-
                     if sensors[j] == self.minimalSurprise.prediction.predictions[i][j]:
                         fit += 1
                     # Count correct shape
@@ -141,11 +135,9 @@ class SelfAssembly:
                     predReturn[j] += self.minimalSurprise.prediction.predictions[i][j]
                 # End Sensor loops
 
-                """
-                    Propagate action network 
-                    Input: current sensor values + last action 
-                    Output: next action --> 0 or 1
-                """
+                # Propagate action network
+                # Input: current sensor values + last action
+                # Output: next action --> 0 or 1
                 if timeStep <= 0:
                     inputA[SENSORS] = STRAIGHT
                 else:  # Last time action
@@ -153,64 +145,84 @@ class SelfAssembly:
 
                 action_output = self.minimalSurprise.action.propagate_action_net(
                     self.minimalSurprise.action.weight_actionNet[ind], inputA)
-                print("Action output for agent", i, ": ", action_output)
+                # print("Action output for agent", i, ": ", action_output[0])
                 self.minimalSurprise.action.current_action[i][timeStep] = action_output[0]
 
-                """
-                     Propagate prediction network Call it after *Action*
-                     Input: current sensor values + next action [Returned by ANN] 
-                     Output: Prediction of sensor value (per agent)
-                 """
+                # Propagate prediction network Call it after *Action*
+                # Input: current sensor values + next action [Returned by ANN]
+                # Output: Prediction of sensor value (per agent)
                 # Action from the *Action* network
                 inputP[SENSORS] = self.minimalSurprise.action.current_action[i][timeStep]
+
                 # Feed input values into the prediction Network
                 if self.manipulation != PRE:
                     self.minimalSurprise.prediction.propagate_prediction_network(
-                        self.minimalSurprise.prediction.weight_predictionNet[ind], i, inputP)
+                        self.minimalSurprise.prediction.weight_predictionNet[ind], i, inputP, self.p)
 
                 # Update the values
-                self.p_next[i] = self.p[i]
+                # self.p_next[i] = self.p[i]
 
                 # Check next action
                 # 0 == move straight; 1 == turn
                 if self.minimalSurprise.action.current_action[i][timeStep] == STRAIGHT:
-                    occupied = 0
-
                     # movement only possible when cell in front is not occupied (sensor S0)
-                    if sensors[S0] == 0:
-                        # move in heading direction (i.e. straight)
-                        tmp_agent_next.x = sensor.adjustXPosition(self.p[i].coord.x + self.p[i].heading.x)
-                        tmp_agent_next.y = sensor.adjustYPosition(self.p[i].coord.y + self.p[i].heading.y)
+                    # move in heading direction (i.e. straight)
+                    tmp_agent_next.x = sensor.adjustXPosition(self.p[i].coord.x + self.p[i].heading.x)
+                    tmp_agent_next.y = sensor.adjustYPosition(self.p[i].coord.y + self.p[i].heading.y)
 
+                    # Front sensor and check next grid is available
+                    if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0:
+                        # print("Move", tmp_agent_next.x, tmp_agent_next.y)
                         # check if next cell is already occupied by agent
                         # next agent positions as far as updated (otherwise positions already checked via sensors)
-                        for k in range(i):
-                            if self.p_next[k].coord.x == tmp_agent_next.x \
-                                    and self.p_next[k].coord.y == tmp_agent_next.y:
-                                occupied = 1
-                                break
-
                         # Agent move
-                        if not occupied:
-                            self.p_next[i].coord.x = tmp_agent_next.x
-                            self.p_next[i].coord.y = tmp_agent_next.y
+                        grid[self.p[i].coord.x][self.p[i].coord.y] = 0     # Set current cell available
+                        grid[tmp_agent_next.x][tmp_agent_next.y] = 1      # Set next cell unavailable
+
+                        self.p_next[i].coord.x = tmp_agent_next.x
+                        self.p_next[i].coord.y = tmp_agent_next.y
+                        self.p_next[i].heading.x = self.p[i].heading.x
+                        self.p_next[i].heading.y = self.p[i].heading.y
+
+                    else:
+                        # print("Can't move")
+                        self.p_next[i].coord.x = self.p[i].coord.x
+                        self.p_next[i].coord.y = self.p[i].coord.y
+                        self.p_next[i].heading.x = self.p[i].heading.x
+                        self.p_next[i].heading.y = self.p[i].heading.y
 
                 # agent Turn --> Update heading
                 elif self.minimalSurprise.action.current_action[i][timeStep] == TURN:
+                    # Keep same coordinate
+                    self.p_next[i].coord.x = self.p[i].coord.x
+                    self.p_next[i].coord.y = self.p[i].coord.y
+
                     # calculate current orientation
                     angle = np.arctan2(self.p[i].heading.y, self.p[i].heading.x)
                     self.p_next[i].heading.x = round(np.cos(angle + action_output[1] * (PI / 2)))
                     self.p_next[i].heading.y = round(np.sin(angle + action_output[1] * (PI / 2)))
+
                 # End action determination
-            # End Agent Iterations
-            # random_location(p_initial, self.sizeX, self.sizeY)
+                # print("Agent ", i, ":",
+                #       "X:", self.p[i].coord.x,
+                #       "Y:", self.p[i].coord.y,
+                #       "Head x:", self.p[i].heading.x,
+                #       "Head y:", self.p[i].heading.y)
+                #
+                # print("Agent ", i, ":",
+                #       "X:", self.p_next[i].coord.x,
+                #       "Y:", self.p_next[i].coord.y,
+                #       "Head x:", self.p_next[i].heading.x,
+                #       "Head y:", self.p_next[i].heading.y)
+
+            # # End Agent Iterations
+            # random_location(self.p, self.p_next, self.sizeX, self.sizeY)
 
             timeStep += 1
-            # random_location(p_initial[k], self.sizeX, self.sizeY)
+
             # Update positions
-            temp = self.p
-            self.p = self.p_next
-            self.p_next = temp
+            temp = self.p_next
+            self.p = temp
         # End while loop
 
         # prediction counter

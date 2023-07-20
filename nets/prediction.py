@@ -29,7 +29,6 @@ class Prediction:
 
         # predictions of agents
         self.predictions = np.zeros((NUM_AGENTS, SENSORS), dtype=int)
-        print(self.predictions)
 
     def prediction_output(self, value):
         """
@@ -39,7 +38,7 @@ class Prediction:
         """
         return 0 if value < 0 else 1
 
-    def propagate_prediction_network(self, weight_prediction, agent, input):
+    def propagate_prediction_network(self, weight_prediction, agent, input, p):
         """
             Propagation of the action network
             Usage:
@@ -78,33 +77,37 @@ class Prediction:
                 net[i] += hidden_net[j] * weight_prediction[2][i*self.hidden+j]
             net[i] = activation(net[i])
 
-        if self.manipulation is None:
-            for i in range(self.output):
-                self.predictions[agent][i] = self.prediction_output((net[i]))
-        elif self.manipulation == MAN:
-            # predefined
-            self.predictions[agent][S0] = 1
-            self.predictions[agent][S3] = 1
+        for i in range(self.output):
+            self.predictions[agent][i] = self.prediction_output((net[i]))
 
-            # learned from output
-            self.predictions[agent][S1] = self.prediction_output(net[0])
-            self.predictions[agent][S2] = self.prediction_output(net[1])
-
-            self.predictions[agent][S4] = self.prediction_output(net[2])
-            self.predictions[agent][S5] = self.prediction_output(net[3])
-
-            if SENSOR_MODEL == STDL:  # 14 sensors
-
-                # predefined
-                self.predictions[agent][S8] = 1
-                self.predictions[agent][S11] = 1
-
-                # learned
-                self.predictions[agent][S6] = self.prediction_output(net[4])
-                self.predictions[agent][S7] = self.prediction_output(net[5])
-
-                self.predictions[agent][S9] = self.prediction_output(net[6])
-                self.predictions[agent][S10] = self.prediction_output(net[7])
-
-                self.predictions[agent][S12] = self.prediction_output(net[8])
-                self.predictions[agent][S13] = self.prediction_output(net[9])
+        # if self.manipulation is None:
+        #   for i in range(self.output):
+        #       self.predictions[agent][i] = self.prediction_output((net[i]))
+        #
+        # elif self.manipulation == MAN:
+        #     if p[agent].type == LINE:
+        #         # predefined
+        #         self.predictions[agent][S0] = 1
+        #         self.predictions[agent][S3] = 1
+        #
+        #         # learned from output
+        #         self.predictions[agent][S1] = self.prediction_output(net[0])
+        #         self.predictions[agent][S2] = self.prediction_output(net[1])
+        #
+        #         self.predictions[agent][S4] = self.prediction_output(net[2])
+        #         self.predictions[agent][S5] = self.prediction_output(net[3])
+        #
+        #         if SENSOR_MODEL == STDL:  # 14 sensors
+        #             # predefined
+        #             self.predictions[agent][S8] = 1
+        #             self.predictions[agent][S11] = 1
+        #
+        #             # learned
+        #             self.predictions[agent][S6] = self.prediction_output(net[4])
+        #             self.predictions[agent][S7] = self.prediction_output(net[5])
+        #
+        #             self.predictions[agent][S9] = self.prediction_output(net[6])
+        #             self.predictions[agent][S10] = self.prediction_output(net[7])
+        #
+        #             self.predictions[agent][S12] = self.prediction_output(net[8])
+        #             self.predictions[agent][S13] = self.prediction_output(net[9])
