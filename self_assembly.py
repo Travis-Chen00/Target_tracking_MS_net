@@ -5,6 +5,7 @@ from parameters.STD14 import *
 from minimal_surprise import MinimalSurprise
 from utils.sensors import *
 from draw import random_location
+import pickle
 
 
 class SelfAssembly:
@@ -14,6 +15,8 @@ class SelfAssembly:
         self.manipulation = manipulation
         self.sizeX = size_x
         self.sizeY = size_y
+
+        self.target = [int(self.sizeX), int(self.sizeY)]    # Set the coordinates of target / embedded into swarms
 
         # Evolution count
         self.count = 0
@@ -151,7 +154,10 @@ class SelfAssembly:
                     inputA[SENSORS] = self.minimalSurprise.action.current_action[i][timeStep - 1]
 
                 action_output = self.minimalSurprise.action.propagate_action_net(
-                    self.minimalSurprise.action.weight_actionNet[ind], inputA)
+                    self.minimalSurprise.action.weight_actionNet_layer0[ind],
+                    self.minimalSurprise.action.weight_actionNet_layer1[ind],
+                    self.minimalSurprise.action.weight_actionNet_layer2[ind], inputA)
+
                 # print("Action output for agent", i, ": ", action_output[0])
                 self.minimalSurprise.action.current_action[i][timeStep] = action_output[0]
 
@@ -164,7 +170,9 @@ class SelfAssembly:
                 # Feed input values into the prediction Network
                 if self.manipulation != PRE:
                     self.minimalSurprise.prediction.propagate_prediction_network(
-                        self.minimalSurprise.prediction.weight_predictionNet[ind], i, inputP, self.p)
+                        self.minimalSurprise.prediction.weight_predictionNet_layer0[ind],
+                        self.minimalSurprise.prediction.weight_predictionNet_layer1[ind],
+                        self.minimalSurprise.prediction.weight_predictionNet_layer2[ind], i, inputP, self.p)
 
                 # Update the values
                 # self.p_next[i] = self.p[i]
@@ -287,9 +295,27 @@ class SelfAssembly:
         # Shape (50, 3, 224)
         for ind in range(POP_SIZE):
             for j in range(LAYERS):
-                for k in range(CONNECTIONS):
-                    self.minimalSurprise.action.weight_actionNet[ind][j][k] = random.uniform(-0.5, 0.5)
-                    self.minimalSurprise.prediction.weight_predictionNet[ind][j][k] = random.uniform(-0.5, 0.5)
+                if j == 0:
+                    for k in range(CONNECTIONS):
+                        self.minimalSurprise.action.weight_actionNet_layer0[ind][k] = random.uniform(-0.5, 0.5)
+                        self.minimalSurprise.prediction.weight_predictionNet_layer0[ind][k] = random.uniform(-0.5, 0.5)
+                    continue
+
+                elif j == 1:    # 15 * 8 for action || 15 * 14 for prediction
+                    # print("Layer 2:", INPUTA * HIDDENA, INPUTP * HIDDENP)
+                    for k in range(INPUTA * HIDDENA):
+                        self.minimalSurprise.action.weight_actionNet_layer1[ind][k] = random.uniform(-0.5, 0.5)
+                    for k in range((INPUTP + 1) * HIDDENP):
+                        self.minimalSurprise.prediction.weight_predictionNet_layer1[ind][k] = random.uniform(-0.5, 0.5)
+                    continue
+
+                elif j == 2:
+                    # print("Layer 3:", HIDDENA * (OUTPUTA + 1), (HIDDENP * (OUTPUTP + 1)))
+                    for k in range(HIDDENA * OUTPUTA):
+                        self.minimalSurprise.action.weight_actionNet_layer2[ind][k] = random.uniform(-0.5, 0.5)
+                    for k in range(HIDDENP * OUTPUTP):
+                        self.minimalSurprise.prediction.weight_predictionNet_layer2[ind][k] = random.uniform(-0.5, 0.5)
+                    continue
 
         # print("Action weight:", self.minimalSurprise.action.weight_actionNet)
         # print("Prediction weight:", self.minimalSurprise.prediction.weight_predictionNet)
@@ -486,6 +512,11 @@ class SelfAssembly:
             for j in range(LAYERS):
                 for k in range(CONNECTIONS):
                     print("Max:", self.minimalSurprise.prediction.weight_predictionNet[maxID][j][k])
+
+            # # Save the weight and position into pkt file ==> Can use it to repeat training
+            # with open('best_individual.pkl', 'wb') as f:
+            #     pickle.dump(self.minimalSurprise.action.weight_actionNet, f)
+            #     pickle.dump(self.minimalSurprise.prediction.weight_predictionNet, f)
 
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)

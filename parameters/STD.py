@@ -5,7 +5,7 @@ POP_SIZE = 50  #population
 MAX_TIME = 500  # time per run
 MAX_GENS = 100  # maximum generations
 
-REPETITIONS = 2  # repetitions of each individual
+REPETITIONS = 10  # repetitions of each individual
 NUM_AGENTS = 100
 
 # movement
