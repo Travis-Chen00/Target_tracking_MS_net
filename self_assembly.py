@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import random
 from utils.util import Pos, Agent
@@ -68,7 +70,7 @@ class SelfAssembly:
             grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
             for i in range(noagents):
                 grid[int(self.p[i].coord.x)][int(self.p[i].coord.y)] = 1
-            
+
             grid[self.target[0]][self.target[1]] = 1    # Set target location
 
             # Iterate all agents
@@ -235,12 +237,16 @@ class SelfAssembly:
         tmp_action = [[0] * MAX_TIME for _ in range(NUM_AGENTS)]
 
         # file names
-        file = f"_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
-        fit_file = "fitness" + file
-        predGen_file = "prediction_genomes" + file
-        actGen_file = "action_genomes" + file
-        actVal_file = "actionValues" + file
-        agent_file = "agents" + file
+        directory = "results"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        file = f"_Count_{self.count}_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
+        fit_file = directory + "fitness" + file
+        predGen_file = directory + "prediction_genomes" + file
+        actGen_file = directory + "action_genomes" + file
+        actVal_file = directory + "actionValues" + file
+        agent_file = directory + "agents" + file
 
         # initialise weights of neural nets in range [-0.5, 0.5]
         # Shape (50, 3, 224)
