@@ -72,11 +72,15 @@ class MinimalSurprise:
                         self.action.weight_actionNet_layer0[ind][k] \
                             += 0.8 * random.random() - 0.4
                 for k in range((self.amountInPrediction + 1) * self.amountHiddenPrediction):
-                    self.prediction.weight_predictionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
+                    if random.random() < MUTATION:
+                        self.prediction.weight_predictionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountInAction * self.amountHiddenAction):
-                    self.action.weight_actionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
+                    if random.random() < MUTATION:
+                        self.action.weight_actionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountHiddenAction * self.amountOutAction):
-                    self.action.weight_actionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
+                    if random.random() < MUTATION:
+                        self.action.weight_actionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountOutPrediction * self.amountHiddenPrediction):
-                    self.prediction.weight_predictionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
+                    if random.random() < MUTATION:
+                        self.prediction.weight_predictionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
 
