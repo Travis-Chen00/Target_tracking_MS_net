@@ -16,7 +16,7 @@ class SelfAssembly:
         self.sizeX = size_x
         self.sizeY = size_y
 
-        self.target = [int(self.sizeX), int(self.sizeY)]    # Set the coordinates of target / embedded into swarms
+        self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]    # Set the coordinates of target / embedded into swarms
 
         # Evolution count
         self.count = 0
@@ -61,38 +61,6 @@ class SelfAssembly:
             self.p[i].heading.x = p_initial[i].heading.x
             self.p[i].heading.y = p_initial[i].heading.y
 
-            # if self.manipulation is not None:
-            #     if self.p[i].type == LINE:
-            #         if SENSOR_MODEL == STDSL:
-            #             self.minimalSurprise.prediction.predict_shape[i][S0] = 1
-            #             self.minimalSurprise.prediction.predict_shape[i][S5] = 1
-            #         else:   # Forward & Backward will have agents
-            #             self.minimalSurprise.prediction.predict_shape[i][S0] = 1
-            #             self.minimalSurprise.prediction.predict_shape[i][S3] = 1
-            #
-            #             if SENSOR_MODEL == STDL:    # 14 sensors
-            #                 self.minimalSurprise.prediction.predict_shape[i][S8] = 1
-            #                 self.minimalSurprise.prediction.predict_shape[i][S11] = 1
-            #     elif self.p[i].type == SQUARE:
-            #         if SENSOR_MODEL == STDL:
-            #             self.minimalSurprise.prediction.predict_shape[i][S3] = 1
-            #             self.minimalSurprise.prediction.predict_shape[i][S11] = 1
-            #
-            #     elif self.p[i].type == DIAMOND:
-            #         if SENSOR_MODEL == STDL:
-            #             self.minimalSurprise.prediction.predict_shape[i][S1] = 1
-            #             self.minimalSurprise.prediction.predict_shape[i][S2] = 1
-            #             self.minimalSurprise.prediction.predict_shape[i][S3] = 1
-            #             self.minimalSurprise.prediction.predict_shape[i][S9] = 1
-            #             self.minimalSurprise.prediction.predict_shape[i][S10] = 1
-            #             self.minimalSurprise.prediction.predict_shape[i][S11] = 1
-            #
-            #     elif self.p[i].type == PAIR:
-            #         self.minimalSurprise.prediction.predict_shape[i][S0] = 1
-            #
-            #     elif self.p[i].type == AGGREGATION:
-            #         self.minimalSurprise.prediction.predict_shape[i] = [1] * SENSORS
-
         while timeStep < maxTime:
             # determine occupied grid cells (0 - unoccupied, 1 - occupied)
             # Locate all agents into the grid
@@ -124,26 +92,11 @@ class SelfAssembly:
                 # Get all sensor values from 15 * 15 grid
                 # Shape Line S0, S3, S8, S11 equals to 1
                 # At least 3 agents in one line
-
-                # print("Agent ", i, " Sensors: ", sensors)
-                # print("Agent ", i, " Prediction: ", self.minimalSurprise.prediction.predictions[i])
-
                 # Set sensor values to both networks
                 for j in range(SENSORS):
                     # set sensor values as ANN input values
                     inputA[j] = sensors[j]
                     inputP[j] = sensors[j]
-
-                #     # sensors ==> real sensor value
-                #     # prediction ==> output from the Prediction network
-                #     # count correct predictions
-                #     if sensors[j] == self.minimalSurprise.prediction.predictions[i][j]:
-                #         fit += 1
-                #     # Count correct shape
-                #
-                #     # set prediction counters
-                #     predReturn[j] += self.minimalSurprise.prediction.predictions[i][j]
-                # # End Sensor loops
 
                 # Propagate action network
                 # Input: current sensor values + last action
@@ -174,9 +127,6 @@ class SelfAssembly:
                         self.minimalSurprise.prediction.weight_predictionNet_layer1[ind],
                         self.minimalSurprise.prediction.weight_predictionNet_layer2[ind], i, inputP, self.p)
 
-                # Update the values
-                # self.p_next[i] = self.p[i]
-
                 # Calculate the fitness
                 for j in range(SENSORS):
                     if sensors[j] == self.minimalSurprise.prediction.predictions[i][j]:
@@ -193,8 +143,8 @@ class SelfAssembly:
                     tmp_agent_next.y = sensor.adjustYPosition(self.p[i].coord.y + self.p[i].heading.y)
 
                     # Front sensor and check next grid is available
-                    if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0:
-                        # print("Move", tmp_agent_next.x, tmp_agent_next.y)
+                    if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0 and \
+                            tmp_agent_next.x != self.target.x and tmp_agent_next.y != self.target.y:
                         # check if next cell is already occupied by agent
                         # next agent positions as far as updated (otherwise positions already checked via sensors)
                         # Agent move
@@ -237,7 +187,7 @@ class SelfAssembly:
                 #       "Head x:", self.p_next[i].heading.x,
                 #       "Head y:", self.p_next[i].heading.y)
 
-            # # End Agent Iterations
+            # End Agent Iterations
             # random_location(self.p, self.p_next, self.sizeX, self.sizeY)
 
             timeStep += 1
@@ -284,7 +234,7 @@ class SelfAssembly:
         tmp_action = [[0] * MAX_TIME for _ in range(NUM_AGENTS)]
 
         # file names
-        file = f"{self.count}_0_{NUM_AGENTS}"
+        file = f"_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
         fit_file = "fitness" + file
         predGen_file = "prediction_genomes" + file
         actGen_file = "action_genomes" + file
