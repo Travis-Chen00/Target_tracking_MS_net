@@ -116,8 +116,8 @@ if __name__ == "__main__":
     for line in f:
         if line[0] == 'T':
             gen = re.split('[,.: \n]', line)
-            target.append(int(gen[2]) // 2)
-            target.append(int(gen[4]) // 2)
+            target.append(int(gen[2]))
+            target.append(int(gen[4]))
         if line[0] != 'G' and line[0] != 'F' and line[0] != ' ' and line[0] != 'T':
             gen = gen = re.split('[,.: \n]', line)
             if len(gen) > 10:

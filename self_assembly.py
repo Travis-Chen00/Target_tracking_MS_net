@@ -144,7 +144,7 @@ class SelfAssembly:
 
                     # Front sensor and check next grid is available
                     if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0 and \
-                            tmp_agent_next.x != self.target.x and tmp_agent_next.y != self.target.y:
+                            tmp_agent_next.x != self.target[0] and tmp_agent_next.y != self.target[1]:
                         # check if next cell is already occupied by agent
                         # next agent positions as far as updated (otherwise positions already checked via sensors)
                         # Agent move
