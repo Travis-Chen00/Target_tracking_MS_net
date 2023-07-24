@@ -68,6 +68,8 @@ class SelfAssembly:
             grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
             for i in range(noagents):
                 grid[int(self.p[i].coord.x)][int(self.p[i].coord.y)] = 1
+            
+            grid[self.target[0]][self.target[1]] = 1    # Set target location
 
             # Iterate all agents
             # Execute agents one by one in each timeStep
@@ -143,8 +145,7 @@ class SelfAssembly:
                     tmp_agent_next.y = sensor.adjustYPosition(self.p[i].coord.y + self.p[i].heading.y)
 
                     # Front sensor and check next grid is available
-                    if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0 and \
-                            tmp_agent_next.x != self.target[0] and tmp_agent_next.y != self.target[1]:
+                    if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0:
                         # check if next cell is already occupied by agent
                         # next agent positions as far as updated (otherwise positions already checked via sensors)
                         # Agent move
