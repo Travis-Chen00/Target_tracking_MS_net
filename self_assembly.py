@@ -317,9 +317,6 @@ class SelfAssembly:
                         self.minimalSurprise.prediction.weight_predictionNet_layer2[ind][k] = random.uniform(-0.5, 0.5)
                     continue
 
-        # print("Action weight:", self.minimalSurprise.action.weight_actionNet)
-        # print("Prediction weight:", self.minimalSurprise.prediction.weight_predictionNet)
-
         # evolutionary runs
         # For one generation:
         # 50 Agents * 10 times repetitions ==> 500 individuals
@@ -476,6 +473,7 @@ class SelfAssembly:
                 f.write(f"Gen: {gen}\n")
                 f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
                 f.write(f"Fitness: {max}\n")
+                f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
                 for i in range(NUM_AGENTS):
                     f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
                     f.write(f"{agent_maxfit_beginning[i].coord.x}, {agent_maxfit_beginning[i].coord.y}, ")
@@ -496,27 +494,26 @@ class SelfAssembly:
                 f.write("\n")
 
             with open(actGen_file, "a") as f:
-                for i in range(LAYERS):
-                    for j in range(CONNECTIONS):
-                        f.write(f"{self.minimalSurprise.action.weight_actionNet[maxID][i][j]} ")
-                    f.write("\n")
+                for j in range(CONNECTIONS):
+                    f.write(f"{self.minimalSurprise.action.weight_actionNet_layer0[maxID][j]} ")
+                f.write("\n")
+                for j in range(INPUTA * HIDDENA):
+                    f.write(f"{self.minimalSurprise.action.weight_actionNet_layer1[maxID][j]} ")
+                f.write("\n")
+                for j in range(HIDDENA * OUTPUTA):
+                    f.write(f"{self.minimalSurprise.action.weight_actionNet_layer2[maxID][j]} ")
                 f.write("\n")
 
             with open(predGen_file, "a") as f:
-                for i in range(LAYERS):
-                    for j in range(CONNECTIONS):
-                        f.write(f"{self.minimalSurprise.prediction.weight_predictionNet[maxID][i][j]} ")
-                    f.write("\n")
+                for j in range(CONNECTIONS):
+                    f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer0[maxID][j]} ")
                 f.write("\n")
-
-            for j in range(LAYERS):
-                for k in range(CONNECTIONS):
-                    print("Max:", self.minimalSurprise.prediction.weight_predictionNet[maxID][j][k])
-
-            # # Save the weight and position into pkt file ==> Can use it to repeat training
-            # with open('best_individual.pkl', 'wb') as f:
-            #     pickle.dump(self.minimalSurprise.action.weight_actionNet, f)
-            #     pickle.dump(self.minimalSurprise.prediction.weight_predictionNet, f)
+                for j in range((INPUTP + 1) * HIDDENP):
+                    f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer1[maxID][j]} ")
+                f.write("\n")
+                for j in range(OUTPUTP * HIDDENP):
+                    f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer2[maxID][j]} ")
+                f.write("\n")
 
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)

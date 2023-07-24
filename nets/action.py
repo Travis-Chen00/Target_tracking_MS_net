@@ -2,16 +2,6 @@ import numpy as np
 from parameters.STD14 import *
 
 
-def activation(x):
-    """
-        Activation function for action network
-        Usage:
-            Input: x
-            Output: tanh(x)
-    """
-    return 2 / (1 + np.exp(x * -2)) - 1
-
-
 class Action:
     def __init__(self, input, hidden, output):
         self.input = input
@@ -35,10 +25,10 @@ class Action:
         action_output = np.zeros(self.output, dtype=int)
 
         # Reshape all lists into matrix
-        input = np.array(input)[:, np.newaxis]                              # (15, 1)
-        input_2_hidden_1 = np.array(layer_0)[np.newaxis, :]        # (1, 112)
-        input_2_hidden_2 = np.array(layer_1).reshape((self.input, self.hidden))      # (15, 8)
-        hidden_2_output = np.array(layer_2).reshape((self.hidden, self.output))        # (8, 2)
+        input = np.array(input)[:, np.newaxis]
+        input_2_hidden_1 = np.array(layer_0)[np.newaxis, :]
+        input_2_hidden_2 = np.array(layer_1).reshape((self.input, self.hidden))
+        hidden_2_output = np.array(layer_2).reshape((self.hidden, self.output))
 
         i_layer = np.tanh(input * input_2_hidden_1[:, ::2] - input_2_hidden_1[:, 1::2])
         i_layer = np.squeeze(i_layer)
@@ -48,6 +38,9 @@ class Action:
 
         net = np.tanh(np.dot(hidden_net.T, hidden_2_output.reshape(self.hidden, self.output)))
 
+        # map outputs to binary values
+        # first output: action value
+        # STRAIGHT == 0, TURN == 1
         if net[0] < 0.0:
             action_output[0] = STRAIGHT
         else:
