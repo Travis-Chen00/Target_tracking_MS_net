@@ -64,12 +64,19 @@ class MinimalSurprise:
                 #             self.action.weight_actionNet[i][j][k]
 
                 # Mutate network
-                for j in range(LAYERS):
-                    for k in range(CONNECTIONS):
-                        if random.random() < MUTATION:  # prediction network
-                            self.prediction.weight_predictionNet[ind][j][k] \
-                                += 0.8 * random.random() - 0.4  # 0.8 * [0, 1] - 0.4 --> [-0.4, 0.4]
-                        if random.random() < MUTATION:  # action network
-                            self.action.weight_actionNet[ind][j][k] \
-                                += 0.8 * random.random() - 0.4
+                for k in range(CONNECTIONS):
+                    if random.random() < MUTATION:  # prediction network
+                        self.prediction.weight_predictionNet_layer0[ind][k] \
+                            += 0.8 * random.random() - 0.4  # 0.8 * [0, 1] - 0.4 --> [-0.4, 0.4]
+                    if random.random() < MUTATION:  # action network
+                        self.action.weight_actionNet_layer0[ind][k] \
+                            += 0.8 * random.random() - 0.4
+                for k in range((self.amountInPrediction + 1) * self.amountHiddenPrediction):
+                    self.prediction.weight_predictionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
+                for k in range(self.amountInAction * self.amountHiddenAction):
+                    self.action.weight_actionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
+                for k in range(self.amountHiddenAction * self.amountOutAction):
+                    self.action.weight_actionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
+                for k in range(self.amountOutPrediction * self.amountHiddenPrediction):
+                    self.prediction.weight_predictionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
 
