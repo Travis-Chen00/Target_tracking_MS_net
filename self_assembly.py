@@ -18,7 +18,8 @@ class SelfAssembly:
         self.sizeX = size_x
         self.sizeY = size_y
 
-        self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]    # Set the coordinates of target / embedded into swarms
+        # Set the coordinates of target / embedded into swarms
+        self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]
 
         # Evolution count
         self.count = 0
@@ -291,6 +292,7 @@ class SelfAssembly:
             for k in range(REPETITIONS):
                 # Reset the grid
                 grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
+                grid[self.target[0]][self.target[1]] = 1  # Set target location
 
                 # generate agent positions
                 # In each repeat, all agent will be initialized
@@ -303,10 +305,6 @@ class SelfAssembly:
                         # Randomise a position for each agent
                         p_initial[k][i].coord.x = random.randint(0, self.sizeX - 1)
                         p_initial[k][i].coord.y = random.randint(0, self.sizeY - 1)
-
-                        # print("Agent ", i, ":", p_initial[k][i].coord.x, p_initial[k][i].coord.y)
-
-                        # print("No.", i, "Locate:", p_initial[k][i].coord.x, p_initial[k][i].coord.y)
 
                         if grid[p_initial[k][i].coord.x][p_initial[k][i].coord.y] == 0:  # not occupied
                             block = False

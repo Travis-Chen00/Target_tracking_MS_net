@@ -22,7 +22,7 @@ def random_location(p, p_next, target, sizeX, sizeY):
     print(target)
 
     # Add a sphere into the center of the grid
-    x = int(target[0]) + 1      # 小网格中心的x坐标
+    x = int(target[0]) + 1     # 小网格中心的x坐标
     y = int(target[1]) + 1     # 小网格中心的y坐标
 
     # 在小网格中心添加圆形
@@ -33,8 +33,12 @@ def random_location(p, p_next, target, sizeX, sizeY):
     data = [p, p_next]
     for idx, ax in enumerate(axs):
         for i in range(len(data[idx])):
-            x = int(data[idx][i].coord.x) + 1
-            y = int(data[idx][i].coord.y) + 1
+            if int(data[idx][i].coord.x) == 8 and int(data[idx][i].coord.y) == 8:
+                x = 9
+                y = 9
+            else:
+                x = int(data[idx][i].coord.x) + 1
+                y = int(data[idx][i].coord.y) + 1
 
             if int(data[idx][i].heading.x) == 1 and int(data[idx][i].heading.y) == 0:  # Face east
                 vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
@@ -65,8 +69,8 @@ def grid_with_shape(p_initial, target, sizeX, sizeY):
         plt.plot([1, sizeX], [i, i], color='black', linewidth=0.5, linestyle="dashed")
 
     # Add a sphere into the center of the grid
-    x = target[0] + 1      # 小网格中心的x坐标
-    y = target[1] + 1     # 小网格中心的y坐标
+    x = target[0]     # 小网格中心的x坐标
+    y = target[1]    # 小网格中心的y坐标
 
     # 在小网格中心添加圆形
     circle = Circle((x, y), 0.28, color='red')
@@ -93,7 +97,7 @@ def grid_with_shape(p_initial, target, sizeX, sizeY):
 
 
 if __name__ == "__main__":
-    file = "data/agents100_target"
+    file = "data/agents_100_TargetX_7_TargetY_7"
     sizeX = 15
     sizeY = 15
 
@@ -105,10 +109,10 @@ if __name__ == "__main__":
     tmp_head_X = []
     tmp_head_Y = []
 
-    next_tmp_X = []
-    next_tmp_Y = []
-    next_tmp_head_X = []
-    next_tmp_head_Y = []
+    begining_tmp_X = []
+    begining_tmp_Y = []
+    begining_tmp_head_X = []
+    begining_tmp_head_Y = []
 
     target = []
     # agent = 0
@@ -126,21 +130,21 @@ if __name__ == "__main__":
                 tmp_head_X.append(gen[8])
                 tmp_head_Y.append(gen[10])
 
-                next_tmp_X.append(gen[4])
-                next_tmp_Y.append(gen[6])
-                next_tmp_head_X.append(gen[12])
-                next_tmp_head_Y.append(gen[14])
+                begining_tmp_X.append(gen[4])
+                begining_tmp_Y.append(gen[6])
+                begining_tmp_head_X.append(gen[12])
+                begining_tmp_head_Y.append(gen[14])
 
     for i in range(NUM_AGENTS):
-        p_initial[i].coord.x = tmp_X[i]
-        p_initial[i].coord.y = tmp_Y[i]
-        p_initial[i].heading.x = tmp_head_X[i]
-        p_initial[i].heading.y = tmp_head_Y[i]
+        p_next[i].coord.x = tmp_X[i]
+        p_next[i].coord.y = tmp_Y[i]
+        p_next[i].heading.x = tmp_head_X[i]
+        p_next[i].heading.y = tmp_head_Y[i]
 
-        p_next[i].coord.x = next_tmp_X[i]
-        p_next[i].coord.y = next_tmp_Y[i]
-        p_next[i].heading.x = next_tmp_head_X[i]
-        p_next[i].heading.y = next_tmp_head_Y[i]
+        p_initial[i].coord.x = begining_tmp_X[i]
+        p_initial[i].coord.y = begining_tmp_Y[i]
+        p_initial[i].heading.x = begining_tmp_head_X[i]
+        p_initial[i].heading.y = begining_tmp_head_Y[i]
 
     # random_location(p_next, p, 15, 15)
 
@@ -184,5 +188,5 @@ if __name__ == "__main__":
     #         p_initial[i].heading.x = 0
     #         p_initial[i].heading.y = directions[randInd]
 
-    random_location(p_next, p_initial, target, sizeX, sizeY)
+    random_location(p_initial, p_next, target, sizeX, sizeY)
 
