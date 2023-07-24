@@ -42,13 +42,23 @@ class MinimalSurprise:
             # individuals out of the maximum
             # Keep that weight for next generation
             if ind == maxID:
-                for j in range(LAYERS):
-                    for k in range(CONNECTIONS):
-                        print("Select Max:", self.prediction.weight_predictionNet[maxID][j][k])
-                        self.prediction.weight_predictionNet[ind][j][k] = \
-                            self.prediction.weight_predictionNet[maxID][j][k]
-                        self.action.weight_actionNet[ind][j][k] = \
-                            self.action.weight_actionNet[maxID][j][k]
+                for k in range(CONNECTIONS):
+                    self.prediction.weight_predictionNet_layer0[ind][k] \
+                        = self.prediction.weight_predictionNet_layer0[maxID][k]
+                    self.action.weight_actionNet_layer0[ind][k] \
+                        = self.action.weight_actionNet_layer0[maxID][k]
+                for k in range((self.amountInPrediction + 1) * self.amountHiddenPrediction):
+                    self.prediction.weight_predictionNet_layer1[ind][k] \
+                        = self.prediction.weight_predictionNet_layer1[maxID][k]
+                for k in range(self.amountInAction * self.amountHiddenAction):
+                    self.action.weight_actionNet_layer1[ind][k] \
+                        = self.action.weight_actionNet_layer1[maxID][k]
+                for k in range(self.amountHiddenAction * self.amountOutAction):
+                    self.action.weight_actionNet_layer2[ind][k] \
+                        = self.action.weight_actionNet_layer2[maxID][k]
+                for k in range(self.amountOutPrediction * self.amountHiddenPrediction):
+                    self.prediction.weight_predictionNet_layer2[ind][k] \
+                        = self.prediction.weight_predictionNet_layer2[maxID][k]
 
             # Mutation and selection
             else:

@@ -243,11 +243,12 @@ class SelfAssembly:
             os.makedirs(directory)
 
         file = f"_Count_{self.count}_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
-        fit_file = directory + "fitness" + file
-        predGen_file = directory + "prediction_genomes" + file
-        actGen_file = directory + "action_genomes" + file
-        actVal_file = directory + "actionValues" + file
-        agent_file = directory + "agents" + file
+
+        fit_file = os.path.join(directory, "fitness" + file)
+        predGen_file = os.path.join(directory, "prediction_genomes" + file)
+        actGen_file = os.path.join(directory, "action_genomes" + file)
+        actVal_file = os.path.join(directory, "actionValues" + file)
+        agent_file = os.path.join(directory, "agents" + file)
 
         # initialise weights of neural nets in range [-0.5, 0.5]
         # Shape (50, 3, 224)

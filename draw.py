@@ -97,7 +97,7 @@ def grid_with_shape(p_initial, target, sizeX, sizeY):
 
 
 if __name__ == "__main__":
-    file = "data/agents_100_TargetX_7_TargetY_7"
+    file = "data/resultsagents_Count_0_100_TargetX_7_TargetY_7"
     sizeX = 15
     sizeY = 15
 
