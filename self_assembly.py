@@ -249,7 +249,6 @@ class SelfAssembly:
         actGen_file = os.path.join(directory, "action_genomes" + file)
         actVal_file = os.path.join(directory, "actionValues" + file)
         agent_file = os.path.join(directory, "agents" + file)
-        original_position = os.path.join(directory, "Original Position" + file)
 
         # initialise weights of neural nets in range [-0.5, 0.5]
         # Shape (50, 3, 224)
@@ -421,13 +420,6 @@ class SelfAssembly:
 
             print(f"#{gen} {max} ({maxID})")
 
-            with open(original_position, "a") as f:
-                for i in range(NUM_AGENTS):
-                    f.write(f"{p_initial[i].coord.x}, {p_initial[i].coord.y}, ")
-                    f.write(f"{p_initial[i].coord.x}, {p_initial[i].coord.y}, ")
-                    f.write(f"\n")
-                f.write("\n")
-                
             with open(fit_file, "a") as f:
                 f.write(f"{self.sizeX} {self.sizeY} {gen} {max} {avg / POP_SIZE} ({maxID}) ")
                 f.write(" ".join(str(val) for val in agentPrediction))
