@@ -127,10 +127,11 @@ class Sensors:
         dxbl = int(self.adjustXPosition(p[i].coord.x - 2 * p[i].heading.x))
         dybl = int(self.adjustYPosition(p[i].coord.y - 2 * p[i].heading.y))
 
-        sensors[S0] = grid[dx][dy]      # FORWARD SHORT
-        sensors[S3] = grid[dxl][dyl]    # FORWARD LONG
-        sensors[S8] = grid[dxb][dyb]    # BACKWARD SHORT
-        sensors[S11] = grid[dxbl][dybl] # BACKWARD LONG
+        sensors[S0] = grid[dx][dy]          # FORWARD SHORT
+        sensors[S3] = grid[dxl][dyl]        # FORWARD LONG
+        sensors[S8] = grid[dxb][dyb]        # BACKWARD SHORT
+        sensors[S11] = grid[dxbl][dybl]     # BACKWARD LONG
+        sensors[S_T] = grid[dx][dy]         # Temperature sensor FORWARD
 
         if p[i].heading.y == 0:
             if p[i].heading.x == 1:     # Toward North

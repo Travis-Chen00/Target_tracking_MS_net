@@ -29,8 +29,15 @@ S10 = 10  # backward left
 S11 = 11  # 2 cells backward
 S12 = 12  # 2 cells backward right
 S13 = 13  # 2 cells backward left
+S_T = 14   # Temperature sensor forward
 
 PI = 3.14159265
+
+# Temperature setting
+AIM = 3     # Target has the highest priority
+HIGH = 2    # Around the target is the high temperature
+MEDIUM = 1  # Outer is medium temp
+LOW = 0     # Others are normal temp
 
 # fitness evaluation
 MIN = 0

@@ -5,9 +5,10 @@ from utils.util import Agent, Pos
 from parameters.STD14 import *
 import random
 import pickle
+import numpy as np
 
 
-def random_location(p, p_next, target, sizeX, sizeY):
+def random_location(p, p_next, target, sizeX, sizeY, gen, fitness):
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))  # 设置画布大小
 
     for ax in axs:
@@ -19,26 +20,44 @@ def random_location(p, p_next, target, sizeX, sizeY):
         ax.set_xlim(0, sizeX + 1)
         ax.set_ylim(0, sizeY + 1)
 
-    print(target)
-
     # Add a sphere into the center of the grid
     x = int(target[0]) + 1     # 小网格中心的x坐标
     y = int(target[1]) + 1     # 小网格中心的y坐标
+
+    # 创建一个稍大的2D数组，颜色值为蓝色的RGB
+    color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 235]) / 255.0  # 浅蓝色
+
+    # 将目标周围的一圈（9个格子）设为红色
+    for dx in range(-2, 3):
+        for dy in range(-2, 3):
+            color_grid[x + dx, y + dy] = np.array([222, 71, 71]) / 255.0  # 浅红色
+
+    # 将目标周围的外圈（24个格子）设为橘色
+    for dx in range(-4, 5):
+        for dy in range(-4, 5):
+            if abs(dx) < 3 and abs(dy) < 3:  # 跳过内圈
+                continue
+            color_grid[x + dx, y + dy] = np.array([255, 165, 100]) / 255.0  # 浅橘色
+
+    filename = "Generation: " + str(int(gen) + 1) + " Fitness: "+ str(fitness)
+    axs[0].set_title('Original Figure')
+    axs[1].set_title(filename)
 
     # 在小网格中心添加圆形
     for ax in axs:
         circle = Circle((x, y), 0.28, color='red')
         ax.add_patch(circle)
 
+    # 在每个子图中添加颜色背景
+    for ax in axs:
+        ax.imshow(color_grid, origin='lower')
+
+    # 其他绘图代码...
     data = [p, p_next]
     for idx, ax in enumerate(axs):
         for i in range(len(data[idx])):
-            if int(data[idx][i].coord.x) == 8 and int(data[idx][i].coord.y) == 8:
-                x = 9
-                y = 9
-            else:
-                x = int(data[idx][i].coord.x) + 1
-                y = int(data[idx][i].coord.y) + 1
+            x = int(data[idx][i].coord.x) + 1
+            y = int(data[idx][i].coord.y) + 1
 
             if int(data[idx][i].heading.x) == 1 and int(data[idx][i].heading.y) == 0:  # Face east
                 vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
@@ -115,9 +134,17 @@ if __name__ == "__main__":
     begining_tmp_head_Y = []
 
     target = []
+    generation = 0
+    fitness = 0
     # agent = 0
     f = open(file, 'r')
     for line in f:
+        if line[0] == 'G' and line[1] == 'e':
+            gen = re.split('[,.: \n]', line)
+            generation = gen[2]
+        if line[0] == 'F':
+            gen = re.split('[,: \n]', line)
+            fitness = gen[2]
         if line[0] == 'T':
             gen = re.split('[,.: \n]', line)
             target.append(int(gen[2]))
@@ -130,7 +157,7 @@ if __name__ == "__main__":
                 tmp_head_X.append(gen[8])
                 tmp_head_Y.append(gen[10])
 
-                begining_tmp_X.append(gen[4])
+                begining_tmp_X.append(gen[4])   # Max generation agents' original position
                 begining_tmp_Y.append(gen[6])
                 begining_tmp_head_X.append(gen[12])
                 begining_tmp_head_Y.append(gen[14])
@@ -188,5 +215,5 @@ if __name__ == "__main__":
     #         p_initial[i].heading.x = 0
     #         p_initial[i].heading.y = directions[randInd]
 
-    random_location(p_initial, p_next, target, sizeX, sizeY)
+    random_location(p_initial, p_next, target, sizeX, sizeY, generation, fitness)
 
