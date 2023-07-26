@@ -8,7 +8,7 @@ class Action:
         self.hidden = hidden
         self.output = output
 
-        self.weight_actionNet_layer0 = np.zeros((POP_SIZE, CONNECTIONS), dtype=float)
+        self.weight_actionNet_layer0 = np.zeros((POP_SIZE, ACT_CONNECTIONS), dtype=float)
         self.weight_actionNet_layer1 = np.zeros((POP_SIZE, self.input * self.hidden), dtype=float)
         self.weight_actionNet_layer2 = np.zeros((POP_SIZE, self.hidden * self.output), dtype=float)
 
@@ -30,6 +30,7 @@ class Action:
         input_2_hidden_2 = np.array(layer_1).reshape((self.input, self.hidden))
         hidden_2_output = np.array(layer_2).reshape((self.hidden, self.output))
 
+        # print(input.shape, input_2_hidden_1.shape, input_2_hidden_2.shape, hidden_2_output.shape)
         i_layer = np.tanh(input * input_2_hidden_1[:, ::2] - input_2_hidden_1[:, 1::2])
         i_layer = np.squeeze(i_layer)
         i_layer = i_layer[:, 0]

@@ -9,7 +9,7 @@ class Prediction:
         self.output = output
         self.manipulation = manipulation
 
-        self.weight_predictionNet_layer0 = np.zeros((POP_SIZE, CONNECTIONS), dtype=float)
+        self.weight_predictionNet_layer0 = np.zeros((POP_SIZE, PRE_CONNECTIONS), dtype=float)
         self.weight_predictionNet_layer1 = np.zeros((POP_SIZE, (self.input + 1) * self.hidden), dtype=float)
         self.weight_predictionNet_layer2 = np.zeros((POP_SIZE, self.output * self.hidden), dtype=float)
 
@@ -30,6 +30,29 @@ class Prediction:
         """
         return 0 if value < 0 else 1
 
+    def activation(self, net):
+        for i in range(len(net)):
+            net[i] = 1 / (1 + np.exp(-net[i]))  # sigmoid function
+            if i < len(net) - 1:
+                if net[i] > 0.5:
+                    net[i] = 1
+                else:
+                    net[i] = 0
+            else:
+                x = np.tanh(net[i])
+                x = np.abs(x)
+
+                if x < 0.3:
+                    print("MEDIUM")
+                    net[i] = 1  # Temp MEDIUM
+                elif 0.3 <= x <= 0.8:
+                    print("LOW")
+                    net[i] = 0  # Temp LOW
+                elif x > 0.8:
+                    print("HIGH")
+                    net[i] = 2  # Temp HIGH
+        return net
+
     def propagate_prediction_network(self, layer0, layer1, layer2, agent, input, p):
         """
             Propagation of the action network
@@ -40,6 +63,7 @@ class Prediction:
                 Output: [Action, Turn direction]
         """
         # Reshape all lists into matrix
+        # print("Input:", input)
         input = np.array(input)[:, np.newaxis]                              # (15, 1)
         input_2_hidden_1 = np.array(layer0)[np.newaxis, :]
         input_2_hidden_2 = np.array(layer1).reshape(self.input + 1, self.hidden)
@@ -59,7 +83,9 @@ class Prediction:
         hidden_net = np.tanh(hidden_net)  # Activate values to be used in the next layer
 
         # Output layer
-        net = np.tanh(np.dot(hidden_net.T, hidden_2_output.reshape(self.hidden, self.output)))
+        net = self.activation(np.dot(hidden_net.T, hidden_2_output.reshape(self.hidden, self.output)))
+
+        # print(net)
 
         if self.manipulation is None:
             for i in range(self.output):
@@ -75,11 +101,12 @@ class Prediction:
                 self.predictions[agent][S3] = 1
 
                 # learned from output
-                self.predictions[agent][S1] = self.prediction_output(net[0])
-                self.predictions[agent][S2] = self.prediction_output(net[1])
+                self.predictions[agent][S1] = self.prediction_output(net[1])
+                self.predictions[agent][S2] = self.prediction_output(net[2])
 
-                self.predictions[agent][S4] = self.prediction_output(net[2])
-                self.predictions[agent][S5] = self.prediction_output(net[3])
+                self.predictions[agent][S4] = self.prediction_output(net[4])
+                self.predictions[agent][S5] = self.prediction_output(net[5])
+                self.predictions[agent][S_T] = self.prediction_output(net[OUTPUTP - 1])
 
                 if SENSOR_MODEL == STDL:  # 14 sensors
                     # predefined
@@ -90,11 +117,11 @@ class Prediction:
                     self.predictions[agent][S11] = 1
 
                     # learned
-                    self.predictions[agent][S6] = self.prediction_output(net[4])
-                    self.predictions[agent][S7] = self.prediction_output(net[5])
+                    self.predictions[agent][S6] = net[6]
+                    self.predictions[agent][S7] = net[7]
 
-                    self.predictions[agent][S9] = self.prediction_output(net[6])
-                    self.predictions[agent][S10] = self.prediction_output(net[7])
+                    self.predictions[agent][S9] = net[9]
+                    self.predictions[agent][S10] = net[10]
 
-                    self.predictions[agent][S12] = self.prediction_output(net[8])
-                    self.predictions[agent][S13] = self.prediction_output(net[9])
+                    self.predictions[agent][S12] = net[12]
+                    self.predictions[agent][S13] = net[13]

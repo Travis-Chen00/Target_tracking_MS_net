@@ -27,15 +27,23 @@ def random_location(p, p_next, target, sizeX, sizeY, gen, fitness):
     # 创建一个稍大的2D数组，颜色值为蓝色的RGB
     color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 235]) / 255.0  # 浅蓝色
 
+    # # 将目标周围的一圈（9个格子）设为红色
+    # for i in range(sizeX):
+    #     for j in range(sizeY):
+    #         if heatmap[i][j] == HIGH:
+    #             color_grid[i + 1, j + 1] = np.array([222, 71, 71]) / 255.0  # 浅红色
+    #         elif heatmap[i][j] == MEDIUM:
+    #             color_grid[i + 1, j + 1] = np.array([255, 165, 100]) / 255.0  # 浅橘色
+
     # 将目标周围的一圈（9个格子）设为红色
     for dx in range(-2, 3):
         for dy in range(-2, 3):
             color_grid[x + dx, y + dy] = np.array([222, 71, 71]) / 255.0  # 浅红色
 
     # 将目标周围的外圈（24个格子）设为橘色
-    for dx in range(-4, 5):
-        for dy in range(-4, 5):
-            if abs(dx) < 3 and abs(dy) < 3:  # 跳过内圈
+    for dx in range(-3, 4):
+        for dy in range(-3, 4):
+            if abs(dx) < 2 and abs(dy) < 2:  # 跳过内圈
                 continue
             color_grid[x + dx, y + dy] = np.array([255, 165, 100]) / 255.0  # 浅橘色
 
