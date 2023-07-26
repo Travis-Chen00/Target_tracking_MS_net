@@ -276,7 +276,7 @@ class SelfAssembly:
         tmp_action = [[0] * MAX_TIME for _ in range(NUM_AGENTS)]
 
         # file names
-        directory = "results"
+        directory = "/content/drive/MyDrive/Minimal_Surprise/result"
         if not os.path.exists(directory):
             os.makedirs(directory)
 

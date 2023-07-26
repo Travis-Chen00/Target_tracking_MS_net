@@ -43,13 +43,10 @@ class Prediction:
                 x = np.abs(x)
 
                 if x < 0.3:
-                    print("MEDIUM")
                     net[i] = 1  # Temp MEDIUM
                 elif 0.3 <= x <= 0.8:
-                    print("LOW")
                     net[i] = 0  # Temp LOW
                 elif x > 0.8:
-                    print("HIGH")
                     net[i] = 2  # Temp HIGH
         return net
 
