@@ -42,9 +42,10 @@ class MinimalSurprise:
             # individuals out of the maximum
             # Keep that weight for next generation
             if ind == maxID:
-                for k in range(CONNECTIONS):
+                for k in range(ACT_CONNECTIONS):
                     self.prediction.weight_predictionNet_layer0[ind][k] \
                         = self.prediction.weight_predictionNet_layer0[maxID][k]
+                for k in range(PRE_CONNECTIONS):
                     self.action.weight_actionNet_layer0[ind][k] \
                         = self.action.weight_actionNet_layer0[maxID][k]
                 for k in range((self.amountInPrediction + 1) * self.amountHiddenPrediction):
