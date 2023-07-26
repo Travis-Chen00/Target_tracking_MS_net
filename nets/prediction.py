@@ -86,7 +86,7 @@ class Prediction:
 
         if self.manipulation is None:
             for i in range(self.output):
-                self.predictions[agent][i] = self.prediction_output((net[i]))
+                self.predictions[agent][i] = net[i]
 
         # If the shape is determined
         # The prediction of specified sensor should be determined
@@ -98,12 +98,12 @@ class Prediction:
                 self.predictions[agent][S3] = 1
 
                 # learned from output
-                self.predictions[agent][S1] = self.prediction_output(net[1])
-                self.predictions[agent][S2] = self.prediction_output(net[2])
+                self.predictions[agent][S1] = net[1]
+                self.predictions[agent][S2] = net[2]
 
-                self.predictions[agent][S4] = self.prediction_output(net[4])
-                self.predictions[agent][S5] = self.prediction_output(net[5])
-                self.predictions[agent][S_T] = self.prediction_output(net[OUTPUTP - 1])
+                self.predictions[agent][S4] = net[4]
+                self.predictions[agent][S5] = net[5]
+                self.predictions[agent][S_T] = net[OUTPUTP - 1]
 
                 if SENSOR_MODEL == STDL:  # 14 sensors
                     # predefined
