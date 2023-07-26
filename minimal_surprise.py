@@ -75,10 +75,11 @@ class MinimalSurprise:
                 #             self.action.weight_actionNet[i][j][k]
 
                 # Mutate network
-                for k in range(CONNECTIONS):
+                for k in range(ACT_CONNECTIONS):
                     if random.random() < MUTATION:  # prediction network
                         self.prediction.weight_predictionNet_layer0[ind][k] \
                             += 0.8 * random.random() - 0.4  # 0.8 * [0, 1] - 0.4 --> [-0.4, 0.4]
+                for k in range(PRE_CONNECTIONS):
                     if random.random() < MUTATION:  # action network
                         self.action.weight_actionNet_layer0[ind][k] \
                             += 0.8 * random.random() - 0.4
