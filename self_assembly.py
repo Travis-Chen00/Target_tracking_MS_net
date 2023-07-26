@@ -17,7 +17,7 @@ class SelfAssembly:
         self.manipulation = manipulation
         self.sizeX = size_x
         self.sizeY = size_y
-        self.heatmap = [[[0] * int(self.sizeY) for _ in range(int(self.sizeX))] for _ in range(REPETITIONS)]
+
 
         # Set the coordinates of target / embedded into swarms
         self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]
@@ -262,6 +262,7 @@ class SelfAssembly:
     def evolution(self):
         print("Evolution count: ", self.count)
         p_initial = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(REPETITIONS)]
+        heatmap = [[[0] * int(self.sizeY) for _ in range(int(self.sizeX))] for _ in range(REPETITIONS)]
 
         # Store fitness for all population
         fitness = np.zeros(POP_SIZE, dtype=float)
@@ -334,10 +335,10 @@ class SelfAssembly:
                 grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
 
                 grid[self.target[0]][self.target[1]] = 1  # Set target location
-                self.heatmap[k][self.target[0]][self.target[1]] = AIM
+                heatmap[k][self.target[0]][self.target[1]] = AIM
 
                 # All heatmap is low
-                self.heatmap[k] = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
+                heatmap[k] = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
 
                 # Set target
                 for dx in range(-4, 5):
@@ -346,9 +347,9 @@ class SelfAssembly:
                         dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
 
                         if dist < 2:  # High
-                            self.heatmap[k][self.target[0] + dx][self.target[1] + dy] = HIGH
+                            heatmap[k][self.target[0] + dx][self.target[1] + dy] = HIGH
                         elif dist < 4:  # Medium
-                            self.heatmap[k][self.target[0] + dx][self.target[1] + dy] = MEDIUM
+                            heatmap[k][self.target[0] + dx][self.target[1] + dy] = MEDIUM
 
                 # generate agent positions
                 # In each repeat, all agent will be initialized
@@ -405,7 +406,7 @@ class SelfAssembly:
                 for rep in range(REPETITIONS):
                     store = False
 
-                    tmp_fitness = self.execute(gen, ind, p_initial[rep], MAX_TIME, 0, NUM_AGENTS, self.heatmap[k])
+                    tmp_fitness = self.execute(gen, ind, p_initial[rep], MAX_TIME, 0, NUM_AGENTS, heatmap[rep])
                     print("Fitness for population:", ind + 1, "rep:", rep + 1, "Score:", tmp_fitness)
                     # Min fitness of repetitions
                     if FIT_EVAL == MIN:
@@ -476,7 +477,6 @@ class SelfAssembly:
                         for k in range(MAX_TIME):
                             actionValues[j][k] = tmp_action[j][k]
                 # End Fitness store
-
                 print("Score for generation: ", gen + 1, "Score: ", max)
             # End population loop
 
