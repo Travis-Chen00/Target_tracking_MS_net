@@ -18,7 +18,6 @@ class SelfAssembly:
         self.sizeX = size_x
         self.sizeY = size_y
 
-
         # Set the coordinates of target / embedded into swarms
         self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]
 
@@ -141,7 +140,8 @@ class SelfAssembly:
                         self.minimalSurprise.prediction.weight_predictionNet_layer2[ind], i, inputP, self.p)
 
                 # Calculate the fitness
-                for j in range(SENSORS):
+                # No need to compare the temperature
+                for j in range(SENSORS - 1):
                     if sensors[j] == self.minimalSurprise.prediction.predictions[i][j]:
                         fit += 1
                     predReturn[j] += self.minimalSurprise.prediction.predictions[i][j]
@@ -191,36 +191,32 @@ class SelfAssembly:
                 #       "Temp: ", heatmap[self.p[i].coord.x][self.p[i].coord.y],
                 #       "Next temp: ", heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y])
 
-                # Check location temperature
-                if heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH:
-                    if heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] \
-                            - heatmap[self.p[i].coord.x][self.p[i].coord.y] == 0:
-                        heat += 0     # Remain in the high zone
-                    elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] \
-                            - heatmap[self.p[i].coord.x][self.p[i].coord.y] < 0:    # HIGH to MEDIUM
-                        heat -= 0.5       # Move away from the target
+                # Check next location temperature
+                if heatmap[self.p[i].coord.x][self.p[i].coord.y] == LOW and \
+                        heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
+                    heat += 1
                 elif heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
-                    if heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] \
-                            - heatmap[self.p[i].coord.x][self.p[i].coord.y] > 0:    # MEDIUM to HIGH
-                        heat += 0.5     # Move closer to the target
-                    elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] \
-                            - heatmap[self.p[i].coord.x][self.p[i].coord.y] == 0:
-                        heat += 0       # Remain in the medium zone
-                    elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] \
-                            - heatmap[self.p[i].coord.x][self.p[i].coord.y] < 0:    # MEDIUM to LOW
-                        heat -= 1       # Move away from the target
-                elif heatmap[self.p[i].coord.x][self.p[i].coord.y] == LOW:
-                    if heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] \
-                            - heatmap[self.p[i].coord.x][self.p[i].coord.y] == 0:
-                        heat += 0       # Remain in the low zone
-                    elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] \
-                            - heatmap[self.p[i].coord.x][self.p[i].coord.y] > 0:    # LOW to MEDIUM
-                        heat += 1       # # Move closer to the target
+                    heat += 1
+
+                # High score scenarios:
+                # 1. When the agent is moving to the LOW zone,
+                #    Compare the distance, if the distance decreases, which means the agent moves towards the target.
+                # 2. When the agent is located in the HIGH zone,
+                #    If the agent moves away the target, the action is good.
+                loc_original = np.array([self.p[i].coord.x, self.p[i].coord.y])
+                loc_next = np.array([self.p_next[i].coord.x, self.p_next[i].coord.y])
+                count_dist = 0
+                if heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
+                        heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
+                    count_dist += 1
+                elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
+                    distance = np.linalg.norm(np.array(self.target) - loc_next) \
+                               - np.linalg.norm(np.array(self.target) - loc_original)
+                    if distance < 0:
+                        count_dist += 1
+
             # End Agent Iterations
-
-            # print("Total heat change:", heat)
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
-
             timeStep += 1
 
             # Update positions
@@ -234,16 +230,6 @@ class SelfAssembly:
         for i in range(SENSORS):
             self.minimalSurprise.prediction.pred_return[i] = float(predReturn[i]) / (maxTime * noagents)
 
-        # If the group move toward to the target, keep the fitness unchanged
-        # If no movement, slightly decrease the fitness value
-        # Else, decrease the fitness
-        if heat > 0:
-            hot_para = 1
-        elif heat == 0:
-            hot_para = 0.95
-        elif heat < 0:
-            hot_para = 0.85
-
         if log == 1:
             f = open(trajectory_file, "a")
             for i in range(noagents):
@@ -252,7 +238,8 @@ class SelfAssembly:
             f.close()
 
         # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
-        fit_return = hot_para * (float(fit) / float(noagents * maxTime * SENSORS))
+        fit_return = ((float(fit) / float(noagents * maxTime * SENSORS))
+                      + float(count_dist) / float(noagents)) * 1 / 2
         return fit_return  # Return fitness score
 
     """
@@ -277,16 +264,13 @@ class SelfAssembly:
         tmp_action = [[0] * MAX_TIME for _ in range(NUM_AGENTS)]
 
         # file names
-        directory = "/content/drive/MyDrive/Minimal_Surprise/result"
+        directory = "/content/drive/MyDrive/Minimal_Surprise/results"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        file = f"_Count_{self.count}_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
+        file = f"_Agents_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
 
         fit_file = os.path.join(directory, "fitness" + file)
-        predGen_file = os.path.join(directory, "prediction_genomes" + file)
-        actGen_file = os.path.join(directory, "action_genomes" + file)
-        actVal_file = os.path.join(directory, "actionValues" + file)
         agent_file = os.path.join(directory, "agents" + file)
 
         # initialise weights of neural nets in range [-0.5, 0.5]
@@ -500,42 +484,43 @@ class SelfAssembly:
                     f.write(f"{agent_maxfit[i].type}\n")
                 f.write("\n")
 
-            with open(actVal_file, "a") as f:
-                f.write(f"Gen: {gen}\n")
-                f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
-                f.write(f"Fitness: {max}\n")
-                for i in range(NUM_AGENTS):
-                    f.write(f"Agent: {i}\n")
-                    f.write("[")
-                    f.write(", ".join(str(actionValues[i][j]) for j in range(MAX_TIME)))
-                    f.write("]\n")
-                f.write("\n")
-
-            with open(actGen_file, "a") as f:
-                for j in range(ACT_CONNECTIONS):
-                    f.write(f"{self.minimalSurprise.action.weight_actionNet_layer0[maxID][j]} ")
-                f.write("\n")
-                for j in range(INPUTA * HIDDENA):
-                    f.write(f"{self.minimalSurprise.action.weight_actionNet_layer1[maxID][j]} ")
-                f.write("\n")
-                for j in range(HIDDENA * OUTPUTA):
-                    f.write(f"{self.minimalSurprise.action.weight_actionNet_layer2[maxID][j]} ")
-                f.write("\n")
-
-            with open(predGen_file, "a") as f:
-                for j in range(PRE_CONNECTIONS):
-                    f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer0[maxID][j]} ")
-                f.write("\n")
-                for j in range((INPUTP + 1) * HIDDENP):
-                    f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer1[maxID][j]} ")
-                f.write("\n")
-                for j in range(OUTPUTP * HIDDENP):
-                    f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer2[maxID][j]} ")
-                f.write("\n")
+            # with open(actVal_file, "a") as f:
+            #     f.write(f"Gen: {gen}\n")
+            #     f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
+            #     f.write(f"Fitness: {max}\n")
+            #     for i in range(NUM_AGENTS):
+            #         f.write(f"Agent: {i}\n")
+            #         f.write("[")
+            #         f.write(", ".join(str(actionValues[i][j]) for j in range(MAX_TIME)))
+            #         f.write("]\n")
+            #     f.write("\n")
+            #
+            # with open(actGen_file, "a") as f:
+            #     for j in range(ACT_CONNECTIONS):
+            #         f.write(f"{self.minimalSurprise.action.weight_actionNet_layer0[maxID][j]} ")
+            #     f.write("\n")
+            #     for j in range(INPUTA * HIDDENA):
+            #         f.write(f"{self.minimalSurprise.action.weight_actionNet_layer1[maxID][j]} ")
+            #     f.write("\n")
+            #     for j in range(HIDDENA * OUTPUTA):
+            #         f.write(f"{self.minimalSurprise.action.weight_actionNet_layer2[maxID][j]} ")
+            #     f.write("\n")
+            #
+            # with open(predGen_file, "a") as f:
+            #     for j in range(PRE_CONNECTIONS):
+            #         f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer0[maxID][j]} ")
+            #     f.write("\n")
+            #     for j in range((INPUTP + 1) * HIDDENP):
+            #         f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer1[maxID][j]} ")
+            #     f.write("\n")
+            #     for j in range(OUTPUTP * HIDDENP):
+            #         f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer2[maxID][j]} ")
+            #     f.write("\n")
 
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)
+            "Do target moving HERE"
+
             # End evolution runs loop
-            self.count += 1
 
         self.execute(gen, ind, p_initial[rep], MAX_TIME, 1, NUM_AGENTS, self.heatmap[rep])

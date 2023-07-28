@@ -1,12 +1,12 @@
 # experimental setup
 MUTATION = 0.1  # 0.1 - mutation rate
-POP_SIZE = 50  #population
+POP_SIZE = 50  # population
 
-MAX_TIME = 500  # time per run
+MAX_TIME = 300  # time per run
 MAX_GENS = 100  # maximum generations
 
 REPETITIONS = 10  # repetitions of each individual
-NUM_AGENTS = 100
+NUM_AGENTS = 50
 
 # movement
 STRAIGHT = 0

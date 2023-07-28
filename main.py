@@ -36,6 +36,7 @@ if __name__ == "__main__":
     if EVOL:  # Train the network
 
         # Get grid size
+
         # SIZE_X = float(sys.argv[2])
         # SIZE_Y = float(sys.argv[3])
         SIZE_X = 15
