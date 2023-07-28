@@ -84,7 +84,7 @@ def random_location(p, p_next, target, sizeX, sizeY, gen, fitness):
 
 
 if __name__ == "__main__":
-    file = "results/agents_Agents_100_TargetX_7_TargetY_7"
+    file = "results/agents_Agents_50_TargetX_7_TargetY_7"
     sizeX = 15
     sizeY = 15
 

@@ -207,17 +207,11 @@ class SelfAssembly:
                     if distance > 0:
                         self.fit += 1  # 逃避高温区
                 elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
-                    if distance <= 0 and \
+                    if distance < 0 and \
                             heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:  # 朝目标移动
                         self.fit += 1
-                    elif distance < 0 and \
-                            heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:  # 朝目标移动
-                        self.fit += 1
                 elif heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
-                    if distance == 0:
-                        self.fit += 1
-                    elif distance < 0 and \
-                            heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
+                    if heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
                         self.fit += 1  # 朝目标移动，且不进入高温区
 
             # End Agent Iterations
@@ -374,9 +368,9 @@ class SelfAssembly:
 
             print(f"#{gen} {max} ({maxID})")
 
-            with open(fit_file, "a") as f:
-                f.write(f"{self.sizeX} {self.sizeY} {gen} {max} {avg / POP_SIZE} ({maxID}) ")
-                f.write("\n")
+            # with open(fit_file, "a") as f:
+            #     f.write(f"{self.sizeX} {self.sizeY} {gen} {max} {avg / POP_SIZE} ({maxID}) ")
+            #     f.write("\n")
 
             with open(agent_file, "a") as f:
                 f.write(f"Gen: {gen}\n")
