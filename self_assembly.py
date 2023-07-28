@@ -18,6 +18,8 @@ class SelfAssembly:
         self.sizeX = size_x
         self.sizeY = size_y
 
+        self.fit = 0
+
         # Set the coordinates of target / embedded into swarms
         self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]
 
@@ -76,6 +78,7 @@ class SelfAssembly:
 
             grid[self.target[0]][self.target[1]] = 1  # Set target location
             heat = 0
+            count_dist = 0
             # Iterate all agents
             # Execute agents one by one in each timeStep
             for i in range(noagents):
@@ -192,11 +195,11 @@ class SelfAssembly:
                 #       "Next temp: ", heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y])
 
                 # Check next location temperature
-                if heatmap[self.p[i].coord.x][self.p[i].coord.y] == LOW and \
-                        heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
-                    heat += 1
-                elif heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
-                    heat += 1
+                # if heatmap[self.p[i].coord.x][self.p[i].coord.y] == LOW and \
+                #         heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
+                #     heat += 1
+                # elif heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
+                #     heat += 1
 
                 # High score scenarios:
                 # 1. When the agent is moving to the LOW zone,
@@ -205,15 +208,14 @@ class SelfAssembly:
                 #    If the agent moves away the target, the action is good.
                 loc_original = np.array([self.p[i].coord.x, self.p[i].coord.y])
                 loc_next = np.array([self.p_next[i].coord.x, self.p_next[i].coord.y])
-                count_dist = 0
                 if heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
                         heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
-                    count_dist += 1
+                    self.fit += 1
                 elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
                     distance = np.linalg.norm(np.array(self.target) - loc_next) \
                                - np.linalg.norm(np.array(self.target) - loc_original)
                     if distance < 0:
-                        count_dist += 1
+                        self.fit += 1
 
             # End Agent Iterations
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
@@ -239,7 +241,8 @@ class SelfAssembly:
 
         # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
         fit_return = ((float(fit) / float(noagents * maxTime * SENSORS))
-                      + float(count_dist) / float(noagents)) * 1 / 2
+                      + float(self.fit) / float(noagents * maxTime)) * 1 / 2
+        self.fit = 0    # Rest
         return fit_return  # Return fitness score
 
     """
@@ -360,13 +363,6 @@ class SelfAssembly:
                     else:  # North & South
                         p_initial[k][i].heading.x = 0
                         p_initial[k][i].heading.y = directions[randInd]
-
-                    # if heatmap[p_initial[k][i].coord.x][p_initial[k][i].coord.y] == HIGH:
-                    #     print("Agent: ", i, "X:", p_initial[k][i].coord.x, "Y", p_initial[k][i].coord.y, "Temp: high")
-                    # elif heatmap[p_initial[k][i].coord.x][p_initial[k][i].coord.y] == MEDIUM:
-                    #     print("Agent: ", i, "X:", p_initial[k][i].coord.x, "Y", p_initial[k][i].coord.y, "Temp: Medium")
-                    # elif heatmap[p_initial[k][i].coord.x][p_initial[k][i].coord.y] == LOW:
-                    #     print("Agent: ", i, "X:", p_initial[k][i].coord.x, "Y", p_initial[k][i].coord.y, "Temp: low")
 
                 # random_location(p_initial[k], p_initial[k], self.target, self.sizeX, self.sizeY, gen, 0, heatmap)
             # End Location Initialisation
