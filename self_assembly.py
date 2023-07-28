@@ -208,14 +208,25 @@ class SelfAssembly:
                 #    If the agent moves away the target, the action is good.
                 loc_original = np.array([self.p[i].coord.x, self.p[i].coord.y])
                 loc_next = np.array([self.p_next[i].coord.x, self.p_next[i].coord.y])
+                distance = np.linalg.norm(np.array(self.target) - loc_next) \
+                           - np.linalg.norm(np.array(self.target) - loc_original)
                 if heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
                         heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
-                    self.fit += 1
+                    if distance > 0:
+                        self.fit += 1  # 逃避高温区
                 elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
-                    distance = np.linalg.norm(np.array(self.target) - loc_next) \
-                               - np.linalg.norm(np.array(self.target) - loc_original)
-                    if distance < 0:
+                    if distance <= 0 and \
+                            heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:  # 朝目标移动
                         self.fit += 1
+                    elif distance < 0 and \
+                            heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:  # 朝目标移动
+                        self.fit += 1
+                elif heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
+                    if distance == 0:
+                        self.fit += 1
+                    elif distance < 0 and \
+                            heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
+                        self.fit += 1  # 朝目标移动，且不进入高温区
 
             # End Agent Iterations
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
@@ -242,8 +253,9 @@ class SelfAssembly:
         # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
         fit_return = ((float(fit) / float(noagents * maxTime * SENSORS))
                       + float(self.fit) / float(noagents * maxTime)) * 1 / 2
-        self.fit = 0    # Rest
-        return fit_return  # Return fitness score
+        # fit_return = float(self.fit) / float(noagents * maxTime)
+        self.fit = 0  # Reset
+        return fit_return
 
     """
         Usage: Do evolution
@@ -267,7 +279,7 @@ class SelfAssembly:
         tmp_action = [[0] * MAX_TIME for _ in range(NUM_AGENTS)]
 
         # file names
-        directory = "/content/drive/MyDrive/Minimal_Surprise/results"
+        directory = "results"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -328,14 +340,14 @@ class SelfAssembly:
                 heatmap[k] = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
 
                 # Set target
-                for dx in range(-4, 5):
-                    for dy in range(-4, 5):
+                for dx in range(-5, 6):
+                    for dy in range(-5, 6):
                         # Calculate the distance
                         dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
 
                         if dist < 2:  # High
                             heatmap[k][self.target[0] + dx][self.target[1] + dy] = HIGH
-                        elif dist < 4:  # Medium
+                        elif dist < 5:  # Medium
                             heatmap[k][self.target[0] + dx][self.target[1] + dy] = MEDIUM
 
                 # generate agent positions
@@ -364,7 +376,7 @@ class SelfAssembly:
                         p_initial[k][i].heading.x = 0
                         p_initial[k][i].heading.y = directions[randInd]
 
-                # random_location(p_initial[k], p_initial[k], self.target, self.sizeX, self.sizeY, gen, 0, heatmap)
+                # random_location(p_initial[k], p_initial[k], self.target, self.sizeX, self.sizeY, gen, 0, heatmap[k])
             # End Location Initialisation
 
             # population level (iterate through individuals)

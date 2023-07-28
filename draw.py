@@ -124,7 +124,7 @@ def grid_with_shape(p_initial, target, sizeX, sizeY):
 
 
 if __name__ == "__main__":
-    file = "data/agents_Agents_50_TargetX_7_TargetY_7"
+    file = "results/agents_Agents_100_TargetX_7_TargetY_7"
     sizeX = 15
     sizeY = 15
 
@@ -170,7 +170,7 @@ if __name__ == "__main__":
                 begining_tmp_head_X.append(gen[12])
                 begining_tmp_head_Y.append(gen[14])
 
-    for i in range(50):
+    for i in range(NUM_AGENTS):
         p_next[i].coord.x = tmp_X[i]
         p_next[i].coord.y = tmp_Y[i]
         p_next[i].heading.x = tmp_head_X[i]

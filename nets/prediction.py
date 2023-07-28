@@ -33,21 +33,11 @@ class Prediction:
     def activation(self, net):
         for i in range(len(net)):
             net[i] = 1 / (1 + np.exp(-net[i]))  # sigmoid function
-            if i < len(net) - 1:
+            if i < len(net):
                 if net[i] > 0.5:
                     net[i] = 1
                 else:
                     net[i] = 0
-            else:
-                x = np.tanh(net[i])
-                x = np.abs(x)
-
-                if x < 0.3:
-                    net[i] = 1  # Temp MEDIUM
-                elif 0.3 <= x <= 0.8:
-                    net[i] = 0  # Temp LOW
-                elif x > 0.8:
-                    net[i] = 2  # Temp HIGH
         return net
 
     def propagate_prediction_network(self, layer0, layer1, layer2, agent, input, p):
