@@ -36,16 +36,16 @@ def random_location(p, p_next, target, sizeX, sizeY, gen, fitness):
     #             color_grid[i + 1, j + 1] = np.array([255, 165, 100]) / 255.0  # 浅橘色
 
     # 将目标周围的一圈（9个格子）设为红色
-    for dx in range(-2, 3):
-        for dy in range(-2, 3):
-            color_grid[x + dx, y + dy] = np.array([222, 71, 71]) / 255.0  # 浅红色
+    # Set target
+    for dx in range(-5, 6):
+        for dy in range(-5, 6):
+            # Calculate the distance
+            dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
 
-    # 将目标周围的外圈（24个格子）设为橘色
-    for dx in range(-3, 4):
-        for dy in range(-3, 4):
-            if abs(dx) < 2 and abs(dy) < 2:  # 跳过内圈
-                continue
-            color_grid[x + dx, y + dy] = np.array([255, 165, 100]) / 255.0  # 浅橘色
+            if dist < 2:  # High
+                color_grid[x + dx, y + dy] = np.array([222, 71, 71]) / 255.0  # 浅红色
+            elif dist < 5:  # Medium
+                color_grid[x + dx, y + dy] = np.array([255, 165, 100]) / 255.0  # 浅橘色
 
     filename = "Generation: " + str(int(gen) + 1) + " Fitness: "+ str(fitness)
     axs[0].set_title('Original Figure')
@@ -81,46 +81,6 @@ def random_location(p, p_next, target, sizeX, sizeY, gen, fitness):
 
     plt.show()
 # End Location Initialisation
-
-
-def grid_with_shape(p_initial, target, sizeX, sizeY):
-    # 绘制矩形边界
-    plt.plot([1, sizeX, sizeY, 1, 1], [1, 1, sizeX, sizeY, 0], color='black', linewidth=0.4, linestyle="dashed")
-
-    # 绘制垂直线
-    for i in range(1, sizeY):
-        plt.plot([i, i], [1, sizeY], color='black', linewidth=0.5, linestyle="dashed")
-
-    # 绘制水平线
-    for i in range(1, sizeX):
-        plt.plot([1, sizeX], [i, i], color='black', linewidth=0.5, linestyle="dashed")
-
-    # Add a sphere into the center of the grid
-    x = target[0]     # 小网格中心的x坐标
-    y = target[1]    # 小网格中心的y坐标
-
-    # 在小网格中心添加圆形
-    circle = Circle((x, y), 0.28, color='red')
-    plt.gca().add_patch(circle)
-
-    for i in range(len(p_initial)):
-        x = int(p_initial[i].coord.x) + 1
-        y = int(p_initial[i].coord.y) + 1
-
-        if p_initial[i].heading.x == 1 and p_initial[i].heading.y == 0:  # Face east
-            vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
-        elif p_initial[i].heading.x == -1 and p_initial[i].heading.y == 0:  # Face west
-            vertices = [(x + 0.28, y - 0.28), (x + 0.28, y + 0.28), (x - 0.28, y)]
-        elif p_initial[i].heading.x == 0 and p_initial[i].heading.y == 1:  # Face North
-            vertices = [(x - 0.28, y - 0.28), (x + 0.28, y - 0.28), (x, y + 0.28)]
-        elif p_initial[i].heading.x == 0 and p_initial[i].heading.y == -1:  # Face south
-            vertices = [(x - 0.28, y + 0.28), (x + 0.28, y + 0.28), (x, y - 0.28)]
-
-        triangle = Polygon(vertices, closed=True, edgecolor='black', facecolor='black')
-        plt.gca().add_patch(triangle)
-
-    # 返回当前图形对象
-    plt.show()
 
 
 if __name__ == "__main__":
@@ -170,6 +130,28 @@ if __name__ == "__main__":
                 begining_tmp_head_X.append(gen[12])
                 begining_tmp_head_Y.append(gen[14])
 
+    # All heatmap is low
+    heatmap = [[0] * int(sizeY) for _ in range(int(sizeX))]
+    heatmap = [[LOW for _ in range(sizeY)] for _ in range(sizeX)]
+
+    # Set target
+    for dx in range(-5, 6):
+        for dy in range(-5, 6):
+            # Calculate the distance
+            dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+
+            if dist < 2:  # High
+                heatmap[target[0] + dx][target[1] + dy] = HIGH
+            elif dist < 5:  # Medium
+                heatmap[target[0] + dx][target[1] + dy] = MEDIUM
+
+    low_number_old = 0
+    low_number_new = 0
+    medium_number_old = 0
+    medium_number_new = 0
+    high_number_old = 0
+    high_number_new = 0
+
     for i in range(NUM_AGENTS):
         p_next[i].coord.x = tmp_X[i]
         p_next[i].coord.y = tmp_Y[i]
@@ -181,47 +163,22 @@ if __name__ == "__main__":
         p_initial[i].heading.x = begining_tmp_head_X[i]
         p_initial[i].heading.y = begining_tmp_head_Y[i]
 
-    # random_location(p_next, p, 15, 15)
+        if heatmap[int(begining_tmp_X[i])][int(begining_tmp_Y[i])] == LOW:
+            low_number_old += 1
+        if heatmap[int(tmp_X[i])][int(tmp_Y[i])] == LOW:
+            low_number_new += 1
 
-    # Reset the grid
-    # grid = [[0] * int(sizeY) for _ in range(int(sizeX))]
-    #
-    # target = [int(sizeX / 2), int(sizeY / 2)]   # Coordinate of the target
-    # grid[target[0]][target[1]] = 1  # Set this cell unavailable
-    #
-    # # generate agent positions
-    # # In each repeat, all agent will be initialized
-    # for i in range(NUM_AGENTS):
-    #     # initialisation of starting positions
-    #     block = True
-    #
-    #     # Find an unoccupied location
-    #     while block:
-    #         # Randomise a position for each agent
-    #         p_initial[i].coord.x = random.randint(0, sizeX - 1)
-    #         p_initial[i].coord.y = random.randint(0, sizeY - 1)
-    #
-    #         if grid[p_initial[i].coord.x][p_initial[i].coord.y] == 0:  # not occupied
-    #             print("Agent", i, ": ", "X: ", p_initial[i].coord.x, "Y:", p_initial[i].coord.y,
-    #                   "Grid situation:", grid[p_initial[i].coord.x][p_initial[i].coord.y])
-    #
-    #             block = False
-    #             grid[p_initial[i].coord.x][p_initial[i].coord.y] = 1  # set grid cell occupied
-    #
-    #         if p_initial[i].coord.x == target[0] and p_initial[i].coord.y == target[1]:
-    #             # Randomise a position for each agent
-    #             p_initial[i].coord.x = random.randint(0, sizeX - 1)
-    #             p_initial[i].coord.y = random.randint(0, sizeY - 1)
-    #
-    #     # Set agent heading values randomly (north, south, west, east)
-    #     directions = [1, -1]
-    #     randInd = random.randint(0, 1)
-    #     if random.random() < 0.5:  # West & East
-    #         p_initial[i].heading.x = directions[randInd]
-    #         p_initial[i].heading.y = 0
-    #     else:  # North & South
-    #         p_initial[i].heading.x = 0
-    #         p_initial[i].heading.y = directions[randInd]
+        if heatmap[int(begining_tmp_X[i])][int(begining_tmp_Y[i])] == MEDIUM:
+            medium_number_old += 1
+        if heatmap[int(tmp_X[i])][int(tmp_Y[i])] == MEDIUM:
+            medium_number_new += 1
 
+        if heatmap[int(begining_tmp_X[i])][int(begining_tmp_Y[i])] == HIGH:
+            high_number_old += 1
+        if heatmap[int(tmp_X[i])][int(tmp_Y[i])] == HIGH:
+            high_number_new += 1
+
+    print("Low agents:", "Old:", low_number_old, "New", low_number_new)
+    print("MEDIUM agents:", "Old:", medium_number_old, "New", medium_number_new)
+    print("MEDIUM agents:", "Old:", high_number_old, "New", high_number_new)
     random_location(p_initial, p_next, target, sizeX, sizeY, generation, fitness)
-

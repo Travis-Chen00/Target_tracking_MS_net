@@ -19,6 +19,7 @@ class SelfAssembly:
         self.sizeY = size_y
 
         self.fit = 0
+        self.move = 0  # A variable to determine the target move
 
         # Set the coordinates of target / embedded into swarms
         self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]
@@ -51,6 +52,8 @@ class SelfAssembly:
         inputA = np.zeros(INPUTA)
         inputP = np.zeros(INPUTP)
 
+        max_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
+
         trajectory_file = f"agent_trajectory"
         if log == 1:
             f = open(trajectory_file, "a")
@@ -67,6 +70,8 @@ class SelfAssembly:
             self.p[i].heading.x = p_initial[i].heading.x
             self.p[i].heading.y = p_initial[i].heading.y
 
+        # random_location(p_initial, self.p, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
+
         while timeStep < maxTime:
             # determine occupied grid cells (0 - unoccupied, 1 - occupied)
             # Locate all agents into the grid
@@ -77,8 +82,7 @@ class SelfAssembly:
                 grid[int(self.p[i].coord.x)][int(self.p[i].coord.y)] = 1
 
             grid[self.target[0]][self.target[1]] = 1  # Set target location
-            heat = 0
-            count_dist = 0
+
             # Iterate all agents
             # Execute agents one by one in each timeStep
             for i in range(noagents):
@@ -189,18 +193,6 @@ class SelfAssembly:
                     self.p_next[i].heading.x = round(np.cos(angle + action_output[1] * (PI / 2)))
                     self.p_next[i].heading.y = round(np.sin(angle + action_output[1] * (PI / 2)))
 
-                # print("Agent", i, "X:", self.p[i].coord.x, "Y: ", self.p[i].coord.y,
-                #       "Next X: ", tmp_agent_next.x, "Next Y:", tmp_agent_next.y,
-                #       "Temp: ", heatmap[self.p[i].coord.x][self.p[i].coord.y],
-                #       "Next temp: ", heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y])
-
-                # Check next location temperature
-                # if heatmap[self.p[i].coord.x][self.p[i].coord.y] == LOW and \
-                #         heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
-                #     heat += 1
-                # elif heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
-                #     heat += 1
-
                 # High score scenarios:
                 # 1. When the agent is moving to the LOW zone,
                 #    Compare the distance, if the distance decreases, which means the agent moves towards the target.
@@ -240,8 +232,8 @@ class SelfAssembly:
 
         # prediction counter
         # Pred_return = 1 / T * N
-        for i in range(SENSORS):
-            self.minimalSurprise.prediction.pred_return[i] = float(predReturn[i]) / (maxTime * noagents)
+        # for i in range(SENSORS):
+        #     self.minimalSurprise.prediction.pred_return[i] = float(predReturn[i]) / (maxTime * noagents)
 
         if log == 1:
             f = open(trajectory_file, "a")
@@ -250,12 +242,14 @@ class SelfAssembly:
                         f"{self.p[i].heading.x}, {self.p[i].heading.y}\n")
             f.close()
 
+        max_p = self.p
+
         # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
         fit_return = ((float(fit) / float(noagents * maxTime * SENSORS))
                       + float(self.fit) / float(noagents * maxTime)) * 1 / 2
         # fit_return = float(self.fit) / float(noagents * maxTime)
         self.fit = 0  # Reset
-        return fit_return
+        return fit_return, max_p
 
     """
         Usage: Do evolution
@@ -263,8 +257,6 @@ class SelfAssembly:
 
     def evolution(self):
         print("Evolution count: ", self.count)
-        p_initial = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(REPETITIONS)]
-        heatmap = [[[0] * int(self.sizeY) for _ in range(int(self.sizeX))] for _ in range(REPETITIONS)]
 
         # Store fitness for all population
         fitness = np.zeros(POP_SIZE, dtype=float)
@@ -315,130 +307,49 @@ class SelfAssembly:
                         self.minimalSurprise.prediction.weight_predictionNet_layer2[ind][k] = random.uniform(-0.5, 0.5)
                     continue
 
+        p_initial, heatmap = self.location_init()
+        # random_location(p_initial, p_initial, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
+
         # evolutionary runs
         # For one generation:
         # 50 Agents * 10 times repetitions ==> 500 individuals
         # Total: 50 * 10 * 100 ==> 50000 generations
         for gen in range(MAX_GENS):
-            # max. fitness of per generation
-            # Average fitness of per generation
-            # Index of best individual
             max = 0.0
             avg = 0.0
             maxID = - 1
 
-            # initialisation of starting positions
-            # (all genomes have same set of starting positions)
-            for k in range(REPETITIONS):
-                # Reset the grid
-                grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
-
-                grid[self.target[0]][self.target[1]] = 1  # Set target location
-                heatmap[k][self.target[0]][self.target[1]] = AIM
-
-                # All heatmap is low
-                heatmap[k] = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
-
-                # Set target
-                for dx in range(-5, 6):
-                    for dy in range(-5, 6):
-                        # Calculate the distance
-                        dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
-
-                        if dist < 2:  # High
-                            heatmap[k][self.target[0] + dx][self.target[1] + dy] = HIGH
-                        elif dist < 5:  # Medium
-                            heatmap[k][self.target[0] + dx][self.target[1] + dy] = MEDIUM
-
-                # generate agent positions
-                # In each repeat, all agent will be initialized
-                for i in range(NUM_AGENTS):
-                    # initialisation of starting positions
-                    block = True
-
-                    # Find an unoccupied location
-                    while block:
-                        # Randomise a position for each agent
-                        p_initial[k][i].coord.x = random.randint(0, self.sizeX - 1)
-                        p_initial[k][i].coord.y = random.randint(0, self.sizeY - 1)
-
-                        if grid[p_initial[k][i].coord.x][p_initial[k][i].coord.y] == 0:  # not occupied
-                            block = False
-                            grid[p_initial[k][i].coord.x][p_initial[k][i].coord.y] = 1  # set grid cell occupied
-
-                    # Set agent heading values randomly (north, south, west, east)
-                    directions = [1, -1]
-                    randInd = random.randint(0, 1)
-                    if random.random() < 0.5:  # West & East
-                        p_initial[k][i].heading.x = directions[randInd]
-                        p_initial[k][i].heading.y = 0
-                    else:  # North & South
-                        p_initial[k][i].heading.x = 0
-                        p_initial[k][i].heading.y = directions[randInd]
-
-                # random_location(p_initial[k], p_initial[k], self.target, self.sizeX, self.sizeY, gen, 0, heatmap[k])
-            # End Location Initialisation
-
+            temp_p = p_initial
             # population level (iterate through individuals)
             # POP_SIZE = 50
             # Each generation have 50 population, 100 agents
             for ind in range(POP_SIZE):
-
                 # fitness evaluation - initialisation based on case
-                if FIT_EVAL == MIN:  # MIN - initialise to value higher than max
-                    fitness[ind] = SENSORS + 1.0
-                    tmp_fitness = SENSORS + 1.0
-                else:  # MAX, AVG - initialise to zero
-                    fitness[ind] = 0.0
-                    tmp_fitness = 0.0
+                fitness[ind] = 0.0
+                tmp_fitness = 0.0
 
                 # reset prediction storage
                 pred = [0.0] * SENSORS
 
-                for rep in range(REPETITIONS):
-                    store = False
+                store = False
 
-                    tmp_fitness = self.execute(gen, ind, p_initial[rep], MAX_TIME, 0, NUM_AGENTS, heatmap[rep])
-                    print("Fitness for population:", ind + 1, "rep:", rep + 1, "Score:", tmp_fitness)
-                    # Min fitness of repetitions
-                    if FIT_EVAL == MIN:
-                        if tmp_fitness < fitness[ind]:
-                            fitness[ind] = tmp_fitness
-                            pred = self.minimalSurprise.prediction.pred_return.copy()
-                            store = True
+                tmp_fitness, max_p = self.execute(gen, ind, p_initial, MAX_TIME, 0, NUM_AGENTS, heatmap)
+                print("Fitness for population:", ind + 1, "Score:", tmp_fitness)
 
-                    # max fitness of Repetitions kept
-                    elif FIT_EVAL == MAX:
-                        if tmp_fitness > fitness[ind]:
-                            fitness[ind] = tmp_fitness
-                            pred = self.minimalSurprise.prediction.pred_return.copy()
-                            store = True
+                # max fitness of Repetitions kept
+                if FIT_EVAL == MAX:
+                    if tmp_fitness > fitness[ind]:
+                        fitness[ind] = tmp_fitness
+                        store = True
 
-                    # average fitness of Repetitions
-                    elif FIT_EVAL == AVG:
-                        fitness[ind] += tmp_fitness / REPETITIONS
-                        pred = [pred[s] + self.minimalSurprise.prediction.pred_return[s] /
-                                REPETITIONS for s in range(SENSORS)]
-
-                        if rep == REPETITIONS - 1:  # store data of last repetition
-                            store = True
-
-                    # store best fitness + id of repetition
-                    if store:
-                        max_rep = rep  # Store the index of best repetition
-
-                        for i in range(NUM_AGENTS):  # store agent end positions
-                            tmp_agent_maxfit_final[i].coord.x = self.p[i].coord.x
-                            tmp_agent_maxfit_final[i].coord.y = self.p[i].coord.y
-                            tmp_agent_maxfit_final[i].heading.x = self.p[i].heading.x
-                            tmp_agent_maxfit_final[i].heading.y = self.p[i].heading.y
-                            tmp_agent_maxfit_final[i].type = self.p[i].type
-
-                        for i in range(NUM_AGENTS):  # store action values of best try of repetition
-                            for j in range(MAX_TIME):  # MAX_TIME = POP_SIZE * REPETITION
-                                tmp_action[i][j] = self.minimalSurprise.action.current_action[i][j]
-                # End repetitions loop
-                print("Score for population: ", ind + 1, "Score: ", fitness[ind])
+                # store best fitness + id of repetition
+                if store:
+                    for i in range(NUM_AGENTS):  # store agent end positions
+                        tmp_agent_maxfit_final[i].coord.x = max_p[i].coord.x
+                        tmp_agent_maxfit_final[i].coord.y = max_p[i].coord.y
+                        tmp_agent_maxfit_final[i].heading.x = max_p[i].heading.x
+                        tmp_agent_maxfit_final[i].heading.y = max_p[i].heading.y
+                        tmp_agent_maxfit_final[i].type = max_p[i].type
 
                 # Average fitness of generation
                 avg += fitness[ind]
@@ -448,9 +359,6 @@ class SelfAssembly:
                     max = fitness[ind]
                     maxID = ind
 
-                    # store agent predictions
-                    agentPrediction = pred.copy()
-
                     # store initial and final agent positions
                     for i in range(NUM_AGENTS):
                         agent_maxfit[i].coord.x = tmp_agent_maxfit_final[i].coord.x
@@ -459,15 +367,7 @@ class SelfAssembly:
                         agent_maxfit[i].heading.y = tmp_agent_maxfit_final[i].heading.y
                         agent_maxfit[i].type = tmp_agent_maxfit_final[i].type
 
-                        agent_maxfit_beginning[i].coord.x = p_initial[max_rep][i].coord.x
-                        agent_maxfit_beginning[i].coord.y = p_initial[max_rep][i].coord.y
-                        agent_maxfit_beginning[i].heading.x = p_initial[max_rep][i].heading.x
-                        agent_maxfit_beginning[i].heading.y = p_initial[max_rep][i].heading.y
-
-                    # store action values of best run in generation
-                    for j in range(NUM_AGENTS):
-                        for k in range(MAX_TIME):
-                            actionValues[j][k] = tmp_action[j][k]
+                    p_initial = agent_maxfit
                 # End Fitness store
                 print("Score for generation: ", gen + 1, "Score: ", max)
             # End population loop
@@ -476,7 +376,6 @@ class SelfAssembly:
 
             with open(fit_file, "a") as f:
                 f.write(f"{self.sizeX} {self.sizeY} {gen} {max} {avg / POP_SIZE} ({maxID}) ")
-                f.write(" ".join(str(val) for val in agentPrediction))
                 f.write("\n")
 
             with open(agent_file, "a") as f:
@@ -486,44 +385,11 @@ class SelfAssembly:
                 f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
                 for i in range(NUM_AGENTS):
                     f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
-                    f.write(f"{agent_maxfit_beginning[i].coord.x}, {agent_maxfit_beginning[i].coord.y}, ")
+                    f.write(f"{temp_p[i].coord.x}, {temp_p[i].coord.y}, ")
                     f.write(f"{agent_maxfit[i].heading.x}, {agent_maxfit[i].heading.y}, ")
-                    f.write(f"{agent_maxfit_beginning[i].heading.x}, {agent_maxfit_beginning[i].heading.y}, ")
-                    f.write(f"{agent_maxfit[i].type}\n")
+                    f.write(f"{temp_p[i].heading.x}, {temp_p[i].heading.y}, ")
+                    f.write("\n")
                 f.write("\n")
-
-            # with open(actVal_file, "a") as f:
-            #     f.write(f"Gen: {gen}\n")
-            #     f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
-            #     f.write(f"Fitness: {max}\n")
-            #     for i in range(NUM_AGENTS):
-            #         f.write(f"Agent: {i}\n")
-            #         f.write("[")
-            #         f.write(", ".join(str(actionValues[i][j]) for j in range(MAX_TIME)))
-            #         f.write("]\n")
-            #     f.write("\n")
-            #
-            # with open(actGen_file, "a") as f:
-            #     for j in range(ACT_CONNECTIONS):
-            #         f.write(f"{self.minimalSurprise.action.weight_actionNet_layer0[maxID][j]} ")
-            #     f.write("\n")
-            #     for j in range(INPUTA * HIDDENA):
-            #         f.write(f"{self.minimalSurprise.action.weight_actionNet_layer1[maxID][j]} ")
-            #     f.write("\n")
-            #     for j in range(HIDDENA * OUTPUTA):
-            #         f.write(f"{self.minimalSurprise.action.weight_actionNet_layer2[maxID][j]} ")
-            #     f.write("\n")
-            #
-            # with open(predGen_file, "a") as f:
-            #     for j in range(PRE_CONNECTIONS):
-            #         f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer0[maxID][j]} ")
-            #     f.write("\n")
-            #     for j in range((INPUTP + 1) * HIDDENP):
-            #         f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer1[maxID][j]} ")
-            #     f.write("\n")
-            #     for j in range(OUTPUTP * HIDDENP):
-            #         f.write(f"{self.minimalSurprise.prediction.weight_predictionNet_layer2[maxID][j]} ")
-            #     f.write("\n")
 
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)
@@ -531,4 +397,59 @@ class SelfAssembly:
 
             # End evolution runs loop
 
-        self.execute(gen, ind, p_initial[rep], MAX_TIME, 1, NUM_AGENTS, self.heatmap[rep])
+        self.execute(gen, ind, p_initial, MAX_TIME, 1, NUM_AGENTS, heatmap)
+
+    def location_init(self):
+        grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
+        heatmap = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
+        p_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
+
+        # initialisation of starting positions
+        # (all genomes have same set of starting positions)
+        grid[self.target[0]][self.target[1]] = 1  # Set target location
+        heatmap[self.target[0]][self.target[1]] = AIM
+
+        # All heatmap is low
+        heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
+
+        # Set target
+        for dx in range(-5, 6):
+            for dy in range(-5, 6):
+                # Calculate the distance
+                dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+
+                if dist < 2:  # High
+                    heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
+                    grid[self.target[0] + dx][self.target[1] + dy] = 1  # Set positions unavailable
+                elif dist < 5:  # Medium
+                    heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
+
+        # generate agent positions
+        # In each repeat, all agent will be initialized
+        for i in range(NUM_AGENTS):
+            # initialisation of starting positions
+            block = True
+
+            # Find an unoccupied location
+            while block:
+                # Randomise a position for each agent
+                p_initial[i].coord.x = random.randint(0, self.sizeX - 1)
+                p_initial[i].coord.y = random.randint(0, self.sizeY - 1)
+
+                if grid[p_initial[i].coord.x][p_initial[i].coord.y] == 0:  # not occupied
+                    block = False
+                    grid[p_initial[i].coord.x][p_initial[i].coord.y] = 1  # set grid cell occupied
+
+                # Set agent heading values randomly (north, south, west, east)
+                directions = [1, -1]
+                randInd = random.randint(0, 1)
+                if random.random() < 0.5:  # West & East
+                    p_initial[i].heading.x = directions[randInd]
+                    p_initial[i].heading.y = 0
+                else:  # North & South
+                    p_initial[i].heading.x = 0
+                    p_initial[i].heading.y = directions[randInd]
+
+        # End Location Initialisation
+
+        return p_initial, heatmap
