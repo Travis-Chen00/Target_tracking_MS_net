@@ -21,6 +21,8 @@ class SelfAssembly:
         self.fit = 0
         self.move = 0  # A variable to determine the target move
 
+        self.heatmap = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
+
         # Set the coordinates of target / embedded into swarms
         self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]
 
@@ -43,7 +45,7 @@ class SelfAssembly:
             noagent: Number of agents
     """
 
-    def execute(self, gen, ind, p_initial, maxTime, log, noagents, heatmap):
+    def execute(self, gen, ind, p_initial, maxTime, log, noagents):
         timeStep = 0  # Current timestep
         fit = 0
         predReturn = [0] * SENSORS
@@ -95,7 +97,7 @@ class SelfAssembly:
 
                 # Determine current sensor values (S of t)
                 sensor = Sensors(self.sizeX, self.sizeY)
-                temp = heatmap[self.p[i].coord.x][self.p[i].coord.y]
+                temp = self.heatmap[self.p[i].coord.x][self.p[i].coord.y]
 
                 if SENSOR_MODEL == STDL:
                     sensors = sensor.sensorModelSTDL(i, grid, self.p)
@@ -163,7 +165,8 @@ class SelfAssembly:
                     tmp_agent_next.y = sensor.adjustYPosition(self.p[i].coord.y + self.p[i].heading.y)
 
                     # Front sensor and check next grid is available
-                    if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0:
+                    if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0 \
+                            and self.heatmap[tmp_agent_next.x][tmp_agent_next.y] != HIGH:
                         # check if next cell is already occupied by agent
                         # next agent positions as far as updated (otherwise positions already checked via sensors)
                         # Agent move
@@ -202,16 +205,15 @@ class SelfAssembly:
                 loc_next = np.array([self.p_next[i].coord.x, self.p_next[i].coord.y])
                 distance = np.linalg.norm(np.array(self.target) - loc_next) \
                            - np.linalg.norm(np.array(self.target) - loc_original)
-                if heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
-                        heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
-                    if distance > 0:
-                        self.fit += 1  # 逃避高温区
-                elif heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
+                if self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
+                        self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
+                    self.fit += 1  # 逃避高温区
+                elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
                     if distance < 0 and \
-                            heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:  # 朝目标移动
+                            self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:  # 朝目标移动
                         self.fit += 1
-                elif heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
-                    if heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
+                elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
+                    if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
                         self.fit += 1  # 朝目标移动，且不进入高温区
 
             # End Agent Iterations
@@ -260,9 +262,7 @@ class SelfAssembly:
 
         # store agent movement
         agent_maxfit = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
-        agent_maxfit_beginning = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         tmp_agent_maxfit_final = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
-        tmp_action = [[0] * MAX_TIME for _ in range(NUM_AGENTS)]
 
         # file names
         directory = "results"
@@ -271,7 +271,7 @@ class SelfAssembly:
 
         file = f"_Agents_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
 
-        fit_file = os.path.join(directory, "fitness" + file)
+        # fit_file = os.path.join(directory, "fitness" + file)
         agent_file = os.path.join(directory, "agents" + file)
 
         # initialise weights of neural nets in range [-0.5, 0.5]
@@ -301,7 +301,7 @@ class SelfAssembly:
                         self.minimalSurprise.prediction.weight_predictionNet_layer2[ind][k] = random.uniform(-0.5, 0.5)
                     continue
 
-        p_initial, heatmap = self.location_init()
+        p_initial = self.location_init()
         # random_location(p_initial, p_initial, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
 
         # evolutionary runs
@@ -309,6 +309,7 @@ class SelfAssembly:
         # 50 Agents * 10 times repetitions ==> 500 individuals
         # Total: 50 * 10 * 100 ==> 50000 generations
         for gen in range(MAX_GENS):
+
             max = 0.0
             avg = 0.0
             maxID = - 1
@@ -327,7 +328,7 @@ class SelfAssembly:
 
                 store = False
 
-                tmp_fitness, max_p = self.execute(gen, ind, p_initial, MAX_TIME, 0, NUM_AGENTS, heatmap)
+                tmp_fitness, max_p = self.execute(gen, ind, p_initial, MAX_TIME, 0, NUM_AGENTS)
                 print("Fitness for population:", ind + 1, "Score:", tmp_fitness)
 
                 # max fitness of Repetitions kept
@@ -366,6 +367,8 @@ class SelfAssembly:
                 print("Score for generation: ", gen + 1, "Score: ", max)
             # End population loop
 
+            # if gen >= 1:
+            #     random_location(p_initial, agent_maxfit, self.target, self.sizeX, self.sizeY, 1, 0, self.heatmap)
             print(f"#{gen} {max} ({maxID})")
 
             # with open(fit_file, "a") as f:
@@ -385,26 +388,27 @@ class SelfAssembly:
                     f.write("\n")
                 f.write("\n")
 
+            if gen >= 1:
+                self.update_heatmap()
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)
             "Do target moving HERE"
 
             # End evolution runs loop
 
-        self.execute(gen, ind, p_initial, MAX_TIME, 1, NUM_AGENTS, heatmap)
+        self.execute(gen, ind, p_initial, MAX_TIME, 1, NUM_AGENTS)
 
     def location_init(self):
-        grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
-        heatmap = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
         p_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
+        grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
 
         # initialisation of starting positions
         # (all genomes have same set of starting positions)
         grid[self.target[0]][self.target[1]] = 1  # Set target location
-        heatmap[self.target[0]][self.target[1]] = AIM
+        self.heatmap[self.target[0]][self.target[1]] = AIM
 
         # All heatmap is low
-        heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
+        self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
 
         # Set target
         for dx in range(-5, 6):
@@ -413,10 +417,10 @@ class SelfAssembly:
                 dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
 
                 if dist < 2:  # High
-                    heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
+                    self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
                     grid[self.target[0] + dx][self.target[1] + dy] = 1  # Set positions unavailable
                 elif dist < 5:  # Medium
-                    heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
+                    self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
 
         # generate agent positions
         # In each repeat, all agent will be initialized
@@ -445,5 +449,33 @@ class SelfAssembly:
                     p_initial[i].heading.y = directions[randInd]
 
         # End Location Initialisation
+        return p_initial
 
-        return p_initial, heatmap
+    def target_move(self):
+        print("Target: ", "X", self.target[0], "Y", self.target[1])
+        # self.heatmap[self.target[0]][self.target[1]] = MEDIUM   # Release the temperature
+
+        randInd = random.randint(-1, 1)
+        if random.random() < 0:  # West & East
+            self.target[0] += randInd
+        else:  # North & South
+            self.target[1] += randInd
+
+    def update_heatmap(self):
+        self.target_move()
+        print("New Target: ", "X", self.target[0], self.target[1])
+        self.heatmap[self.target[0]][self.target[1]] = AIM     # Update new aim
+
+        # All heatmap is low
+        self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
+
+        # Set target
+        for dx in range(-5, 6):
+            for dy in range(-5, 6):
+                # Calculate the distance
+                dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+
+                if dist < 2:  # High
+                    self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
+                elif dist < 5:  # Medium
+                    self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM

@@ -47,7 +47,7 @@ def random_location(p, p_next, target, sizeX, sizeY, gen, fitness):
             elif dist < 5:  # Medium
                 color_grid[x + dx, y + dy] = np.array([255, 165, 100]) / 255.0  # 浅橘色
 
-    filename = "Generation: " + str(int(gen) + 1) + " Fitness: "+ str(fitness)
+    filename = "Generation: " + str(int(gen)) + " Fitness: "+ str(fitness)
     axs[0].set_title('Original Figure')
     axs[1].set_title(filename)
 
@@ -115,8 +115,8 @@ if __name__ == "__main__":
             fitness = gen[2]
         if line[0] == 'T':
             gen = re.split('[,.: \n]', line)
-            target.append(int(gen[2]))
-            target.append(int(gen[4]))
+            target = [int(gen[2]), int(gen[4])]
+
         if line[0] != 'G' and line[0] != 'F' and line[0] != ' ' and line[0] != 'T':
             gen = gen = re.split('[,.: \n]', line)
             if len(gen) > 10:
@@ -152,6 +152,8 @@ if __name__ == "__main__":
     high_number_old = 0
     high_number_new = 0
 
+    tmp = [6,7]
+
     for i in range(NUM_AGENTS):
         p_next[i].coord.x = tmp_X[i]
         p_next[i].coord.y = tmp_Y[i]
@@ -181,4 +183,4 @@ if __name__ == "__main__":
     print("Low agents:", "Old:", low_number_old, "New", low_number_new)
     print("MEDIUM agents:", "Old:", medium_number_old, "New", medium_number_new)
     print("MEDIUM agents:", "Old:", high_number_old, "New", high_number_new)
-    random_location(p_initial, p_next, target, sizeX, sizeY, generation, fitness)
+    random_location(p_initial, p_next, tmp, sizeX, sizeY, generation, fitness)
