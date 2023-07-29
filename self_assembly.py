@@ -263,7 +263,7 @@ class SelfAssembly:
         temp_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
 
         # file names
-        directory = "/content/drive/MyDrive/Minimal_Surprise/results"
+        directory = "/content/drive/MyDrive/Minimal_Surprise/result"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -485,12 +485,41 @@ class SelfAssembly:
         self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
 
         # Set target
-        for dx in range(-5, 6):
-            for dy in range(-5, 6):
-                # Calculate the distance
-                dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+        hori = self.target[0] - self.sizeX
+        vertical = self.target[1] - self.sizeY
+        if np.abs(hori) >= 5 and np.abs(vertical) >= 5:
+            for dx in range(-5, 6):
+                for dy in range(-5, 6):
+                    # Calculate the distance
+                    dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
 
-                if dist < 2:  # High
-                    self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
-                elif dist < 5:  # Medium
-                    self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
+                    if dist < 2:  # High
+                        self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
+                    elif dist < 5:  # Medium
+                        self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
+        elif np.abs(hori) < 5 and np.abs(vertical) >= 5:
+            for dx in range(-np.abs(hori), np.abs(hori) + 1):
+                for dy in range(-5, 6):
+                    # Calculate the distance
+                    dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+
+                    if self.target[0] == 15:
+                        self.heatmap[self.target[0] - 1][self.target[1] + dy] = HIGH
+                    else:
+                        if dist < 2:  # High
+                            self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
+                        elif dist < np.abs(hori):  # Medium
+                            self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
+        elif np.abs(hori) >= 5 and np.abs(vertical) < 5:
+            for dx in range(-5, 6):
+                for dy in range(-np.abs(vertical), np.abs(vertical) + 1):
+                    # Calculate the distance
+                    dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+
+                    if self.target[1] == 15:
+                        self.heatmap[self.target[0] - 1][self.target[1] + dy] = HIGH
+                    else:
+                        if dist < 2:  # High
+                            self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
+                        elif dist < np.abs(hori):  # Medium
+                            self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
