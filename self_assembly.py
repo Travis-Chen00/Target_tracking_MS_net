@@ -376,19 +376,19 @@ class SelfAssembly:
             #     f.write(f"{self.sizeX} {self.sizeY} {gen} {max} {avg / POP_SIZE} ({maxID}) ")
             #     f.write("\n")
 
-            if gen == 0 or max >= Threshold:
-                with open(agent_file, "a") as f:
-                    f.write(f"Gen: {gen}\n")
-                    f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
-                    f.write(f"Fitness: {max}\n")
-                    f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
-                    for i in range(NUM_AGENTS):
-                        f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
-                        f.write(f"{temp_p[i].coord.x}, {temp_p[i].coord.y}, ")
-                        f.write(f"{agent_maxfit[i].heading.x}, {agent_maxfit[i].heading.y}, ")
-                        f.write(f"{temp_p[i].heading.x}, {temp_p[i].heading.y}, ")
-                        f.write("\n")
+            with open(agent_file, "a") as f:
+                f.write(f"Gen: {gen}\n")
+                f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
+                f.write(f"Fitness: {max}\n")
+                f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
+                for i in range(NUM_AGENTS):
+                    f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
+                    f.write(f"{temp_p[i].coord.x}, {temp_p[i].coord.y}, ")
+                    f.write(f"{agent_maxfit[i].heading.x}, {agent_maxfit[i].heading.y}, ")
+                    f.write(f"{temp_p[i].heading.x}, {temp_p[i].heading.y}, ")
                     f.write("\n")
+                f.write("\n")
+
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)
 

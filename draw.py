@@ -7,7 +7,7 @@ import numpy as np
 import math
 
 
-def random_location(p, agents, target, sizeX, sizeY):
+def random_location(p, agents, target, sizeX, sizeY, move):
     # 计算 N 的值
     num_targets = len(target)
     N = math.ceil(math.sqrt(num_targets))  # 向上取整
@@ -18,7 +18,7 @@ def random_location(p, agents, target, sizeX, sizeY):
     # 为了方便处理，如果 axs 不是二维数组，那么我们将其转化为二维数组
     if len(axs.shape) < 2:
         axs = np.array([[axs]])
-
+    move_num = 1
     for ge in range(N):
         for j in range(N):
             # 计算当前目标的索引
@@ -52,7 +52,8 @@ def random_location(p, agents, target, sizeX, sizeY):
                 filename = "Initial Figure/" + "Target: " + str(target[idx][0]) + ", " + str(target[idx][1])
                 axs[ge][j].set_title(filename)
             else:
-                filename = "Target: " + str(target[idx][0]) + ", " + str(target[idx][1])
+                filename = "Target: " + str(target[idx][0]) + ", " + str(target[idx][1]) + " Move " + str(move_num)
+                move_num += 1
                 axs[ge][j].set_title(filename)
 
             circle = Circle((x, y), 0.28, color='red')
@@ -192,4 +193,4 @@ if __name__ == "__main__":
                 p_initial[i].heading.y = begining_tmp_head_Y[i]
 
         agents_p.append(p_next)
-    random_location(p_initial, agents_p, total_target, sizeX, sizeY)
+    random_location(p_initial, agents_p, total_target, sizeX, sizeY, total_gen)
