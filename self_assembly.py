@@ -7,7 +7,6 @@ from parameters.STD14 import *
 from minimal_surprise import MinimalSurprise
 from utils.sensors import *
 from draw import random_location
-import pickle
 
 
 class SelfAssembly:
@@ -264,7 +263,7 @@ class SelfAssembly:
         temp_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
 
         # file names
-        directory = "results"
+        directory = "/content/drive/MyDrive/Minimal_Surprise/results"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
