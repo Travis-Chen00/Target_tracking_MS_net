@@ -166,7 +166,8 @@ class SelfAssembly:
 
                     # Front sensor and check next grid is available
                     if sensors[S0] == 0 and grid[tmp_agent_next.x][tmp_agent_next.y] == 0 \
-                            and self.heatmap[tmp_agent_next.x][tmp_agent_next.y] != HIGH:
+                            and self.heatmap[tmp_agent_next.x][tmp_agent_next.y] != HIGH and \
+                            (tmp_agent_next.x != self.sizeX or tmp_agent_next.y != self.sizeY):
                         # check if next cell is already occupied by agent
                         # next agent positions as far as updated (otherwise positions already checked via sensors)
                         # Agent move
@@ -375,19 +376,19 @@ class SelfAssembly:
             #     f.write(f"{self.sizeX} {self.sizeY} {gen} {max} {avg / POP_SIZE} ({maxID}) ")
             #     f.write("\n")
 
-            with open(agent_file, "a") as f:
-                f.write(f"Gen: {gen}\n")
-                f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
-                f.write(f"Fitness: {max}\n")
-                f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
-                for i in range(NUM_AGENTS):
-                    f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
-                    f.write(f"{temp_p[i].coord.x}, {temp_p[i].coord.y}, ")
-                    f.write(f"{agent_maxfit[i].heading.x}, {agent_maxfit[i].heading.y}, ")
-                    f.write(f"{temp_p[i].heading.x}, {temp_p[i].heading.y}, ")
+            if gen == 0 or max >= Threshold:
+                with open(agent_file, "a") as f:
+                    f.write(f"Gen: {gen}\n")
+                    f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
+                    f.write(f"Fitness: {max}\n")
+                    f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
+                    for i in range(NUM_AGENTS):
+                        f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
+                        f.write(f"{temp_p[i].coord.x}, {temp_p[i].coord.y}, ")
+                        f.write(f"{agent_maxfit[i].heading.x}, {agent_maxfit[i].heading.y}, ")
+                        f.write(f"{temp_p[i].heading.x}, {temp_p[i].heading.y}, ")
+                        f.write("\n")
                     f.write("\n")
-                f.write("\n")
-
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)
 
@@ -470,8 +471,8 @@ class SelfAssembly:
                 tmp_X = self.target[0]
                 tmp_Y = self.target[1] + direction[randInd]
 
-            if grid[tmp_X][tmp_Y] == 0:
-                block = False   # Move the target
+            if grid[tmp_X][tmp_Y] == 0 and 0 <= tmp_X <= self.sizeX and 0 <= tmp_Y <= self.sizeY:
+                block = False   # Move the target and Avoid walls
 
         self.target[0] = tmp_X
         self.target[1] = tmp_Y

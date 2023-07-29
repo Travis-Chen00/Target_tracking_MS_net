@@ -3,94 +3,126 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon, Circle
 from utils.util import Agent, Pos
 from parameters.STD14 import *
-import random
-import pickle
 import numpy as np
+import math
 
 
-def random_location(p, p_next, target, sizeX, sizeY, gen, fitness):
-    fig, axs = plt.subplots(1, 2, figsize=(12, 6))  # 设置画布大小
+def random_location(p, agents, target, sizeX, sizeY):
+    # 计算 N 的值
+    num_targets = len(target)
+    N = math.ceil(math.sqrt(num_targets))  # 向上取整
 
-    for ax in axs:
-        ax.plot([1, sizeX, sizeY, 1, 1], [1, 1, sizeX, sizeY, 0], color='black', linewidth=0.4, linestyle="dashed")
-        for i in range(1, sizeY):
-            ax.plot([i, i], [1, sizeY], color='black', linewidth=0.5, linestyle="dashed")
-        for i in range(1, sizeX):
-            ax.plot([1, sizeX], [i, i], color='black', linewidth=0.5, linestyle="dashed")
-        ax.set_xlim(0, sizeX + 1)
-        ax.set_ylim(0, sizeY + 1)
+    # 创建 NxN 子图
+    fig, axs = plt.subplots(N, N, figsize=(12, 12))
 
-    # Add a sphere into the center of the grid
-    x = int(target[0]) + 1     # 小网格中心的x坐标
-    y = int(target[1]) + 1     # 小网格中心的y坐标
+    # 为了方便处理，如果 axs 不是二维数组，那么我们将其转化为二维数组
+    if len(axs.shape) < 2:
+        axs = np.array([[axs]])
 
-    # 创建一个稍大的2D数组，颜色值为蓝色的RGB
-    color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 235]) / 255.0  # 浅蓝色
+    for ge in range(N):
+        for j in range(N):
+            # 计算当前目标的索引
+            idx = ge * N + j
 
-    # # 将目标周围的一圈（9个格子）设为红色
-    # for i in range(sizeX):
-    #     for j in range(sizeY):
-    #         if heatmap[i][j] == HIGH:
-    #             color_grid[i + 1, j + 1] = np.array([222, 71, 71]) / 255.0  # 浅红色
-    #         elif heatmap[i][j] == MEDIUM:
-    #             color_grid[i + 1, j + 1] = np.array([255, 165, 100]) / 255.0  # 浅橘色
+            # 如果当前索引大于目标的数量，那么就没有其他的子图需要画，所以直接退出
+            if idx >= num_targets:
+                axs[ge][j].axis('off')  # 隐藏没有使用的子图
+                continue
 
-    # 将目标周围的一圈（9个格子）设为红色
-    # Set target
-    for dx in range(-5, 6):
-        for dy in range(-5, 6):
-            # Calculate the distance
-            dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+            x = int(target[idx][0]) + 1  # 小网格中心的x坐标
+            y = int(target[idx][1]) + 1  # 小网格中心的y坐标
 
-            if dist < 2:  # High
-                color_grid[x + dx, y + dy] = np.array([222, 71, 71]) / 255.0  # 浅红色
-            elif dist < 5:  # Medium
-                color_grid[x + dx, y + dy] = np.array([255, 165, 100]) / 255.0  # 浅橘色
+            # 创建一个稍大的2D数组，颜色值为蓝色的RGB
+            color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 235]) / 255.0  # 浅蓝色
 
-    filename = "Generation: " + str(int(gen) + 1) + " Fitness: "+ str(fitness)
-    axs[0].set_title('Original Figure')
-    axs[1].set_title(filename)
+            # 将目标周围的一圈（9个格子）设为红色
+            for dx in range(-5, 6):
+                for dy in range(-5, 6):
+                    dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+                    if dist < 2:
+                        color_grid[y + dy, x + dx] = np.array([222, 71, 71]) / 255.0  # 浅红色
+                    elif dist < 5:
+                        color_grid[y + dy, x + dx] = np.array([255, 165, 100]) / 255.0  # 浅橘色
 
-    # 在小网格中心添加圆形
-    for ax in axs:
-        circle = Circle((x, y), 0.28, color='red')
-        ax.add_patch(circle)
+            # 清除之前的内容
+            axs[ge][j].clear()
 
-    # 在每个子图中添加颜色背景
-    for ax in axs:
-        ax.imshow(color_grid, origin='lower')
+            # 添加新的内容
+            if idx == 0:
+                filename = "Initial Figure/" + "Target: " + str(target[idx][0]) + ", " + str(target[idx][1])
+                axs[ge][j].set_title(filename)
+            else:
+                filename = "Target: " + str(target[idx][0]) + ", " + str(target[idx][1])
+                axs[ge][j].set_title(filename)
 
-    # 其他绘图代码...
-    data = [p, p_next]
-    for idx, ax in enumerate(axs):
-        for i in range(len(data[idx])):
-            x = int(data[idx][i].coord.x) + 1
-            y = int(data[idx][i].coord.y) + 1
+            circle = Circle((x, y), 0.28, color='red')
+            axs[ge][j].add_patch(circle)
+            axs[ge][j].imshow(color_grid, origin='lower')
 
-            if int(data[idx][i].heading.x) == 1 and int(data[idx][i].heading.y) == 0:  # Face east
-                vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
-            elif int(data[idx][i].heading.x) == -1 and int(data[idx][i].heading.y) == 0:  # Face west
-                vertices = [(x + 0.28, y - 0.28), (x + 0.28, y + 0.28), (x - 0.28, y)]
-            elif int(data[idx][i].heading.x) == 0 and int(data[idx][i].heading.y) == 1:  # Face North
-                vertices = [(x - 0.28, y - 0.28), (x + 0.28, y - 0.28), (x, y + 0.28)]
-            elif int(data[idx][i].heading.x) == 0 and int(data[idx][i].heading.y) == -1:  # Face south
-                vertices = [(x - 0.28, y + 0.28), (x + 0.28, y + 0.28), (x, y - 0.28)]
+            # 绘制网格
+            axs[ge][j].plot([1, sizeX, sizeY, 1, 1], [1, 1, sizeX, sizeY, 0], color='black', linewidth=0.4,
+                            linestyle="dashed")
+            for i in range(1, sizeY):
+                axs[ge][j].plot([i, i], [1, sizeY], color='black', linewidth=0.5, linestyle="dashed")
+            for i in range(1, sizeX):
+                axs[ge][j].plot([1, sizeX], [i, i], color='black', linewidth=0.5, linestyle="dashed")
 
-            triangle = Polygon(vertices, closed=True, edgecolor='black', facecolor='black')
-            ax.add_patch(triangle)
+            axs[ge][j].set_xlim(0, sizeX + 1)
+            axs[ge][j].set_ylim(0, sizeY + 1)
+
+    for ge in range(N):
+        for j in range(N):
+            # 计算当前目标的索引
+            idx = ge * N + j
+            if idx >= num_targets:
+                continue
+
+            if idx == 0:
+                for i in range(NUM_AGENTS):
+                    x = int(p[i].coord.x) + 1
+                    y = int(p[i].coord.y) + 1
+
+                    if int(p[i].heading.x) == 1 and int(p[i].heading.y) == 0:  # Face east
+                        vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
+                    elif int(p[i].heading.x) == -1 and int(p[i].heading.y) == 0:  # Face west
+                        vertices = [(x + 0.28, y - 0.28), (x + 0.28, y + 0.28), (x - 0.28, y)]
+                    elif int(p[i].heading.x) == 0 and int(p[i].heading.y) == 1:  # Face North
+                        vertices = [(x - 0.28, y - 0.28), (x + 0.28, y - 0.28), (x, y + 0.28)]
+                    elif int(p[i].heading.x) == 0 and int(p[i].heading.y) == -1:  # Face south
+                        vertices = [(x - 0.28, y + 0.28), (x + 0.28, y + 0.28), (x, y - 0.28)]
+
+                    triangle = Polygon(vertices, closed=True, edgecolor='black', facecolor='black')
+                    axs[ge][j].add_patch(triangle)
+
+            elif idx > 0:
+                for i in range(len(agents)):
+                    for k in range(NUM_AGENTS):
+                        x = int(agents[i][k].coord.x) + 1
+                        y = int(agents[i][k].coord.y) + 1
+
+                        if int(agents[i][k].heading.x) == 1 and int(agents[i][k].heading.y) == 0:  # Face east
+                            vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
+                        elif int(agents[i][k].heading.x) == -1 and int(agents[i][k].heading.y) == 0:  # Face west
+                            vertices = [(x + 0.28, y - 0.28), (x + 0.28, y + 0.28), (x - 0.28, y)]
+                        elif int(agents[i][k].heading.x) == 0 and int(agents[i][k].heading.y) == 1:  # Face North
+                            vertices = [(x - 0.28, y - 0.28), (x + 0.28, y - 0.28), (x, y + 0.28)]
+                        elif int(agents[i][k].heading.x) == 0 and int(agents[i][k].heading.y) == -1:  # Face south
+                            vertices = [(x - 0.28, y + 0.28), (x + 0.28, y + 0.28), (x, y - 0.28)]
+
+                        triangle = Polygon(vertices, closed=True, edgecolor='black', facecolor='black')
+                        axs[ge][j].add_patch(triangle)
 
     plt.show()
-# End Location Initialisation
 
 
 if __name__ == "__main__":
-    file = "results/agents_Agents_50_TargetX_7_TargetY_7"
+    file = "results/agents_Agents_50_TargetX_7_TargetY_7_moving"
     sizeX = 15
     sizeY = 15
 
     p_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
     p_next = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
-    #
+
     tmp_X = []
     tmp_Y = []
     tmp_head_X = []
@@ -101,18 +133,23 @@ if __name__ == "__main__":
     begining_tmp_head_X = []
     begining_tmp_head_Y = []
 
+    total_target = []
+
+    init_gen = False
+
     target = []
     generation = 0
     fitness = 0
-    # agent = 0
+    line_count = 0
     f = open(file, 'r')
+    total_gen = 0
     for line in f:
         if line[0] == 'G' and line[1] == 'e':
             gen = re.split('[,.: \n]', line)
-            generation = gen[2]
-        if line[0] == 'F':
-            gen = re.split('[,: \n]', line)
-            fitness = gen[2]
+            if int(gen[2]) == 0:
+                init_gen = True
+            total_gen += 1
+
         if line[0] == 'T':
             gen = re.split('[,.: \n]', line)
             target = [int(gen[2]), int(gen[4])]
@@ -125,60 +162,31 @@ if __name__ == "__main__":
                 tmp_head_X.append(gen[8])
                 tmp_head_Y.append(gen[10])
 
-                begining_tmp_X.append(gen[4])   # Max generation agents' original position
+                begining_tmp_X.append(gen[4])  # Max generation agents' original position
                 begining_tmp_Y.append(gen[6])
                 begining_tmp_head_X.append(gen[12])
                 begining_tmp_head_Y.append(gen[14])
 
-    # All heatmap is low
-    heatmap = [[0] * int(sizeY) for _ in range(int(sizeX))]
-    heatmap = [[LOW for _ in range(sizeY)] for _ in range(sizeX)]
+        if line_count == NUM_AGENTS + 4:
+            total_target.append(target)
+            line_count = 0
+            continue
+        line_count += 1
 
-    # Set target
-    for dx in range(-5, 6):
-        for dy in range(-5, 6):
-            # Calculate the distance
-            dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+    agents_p = []
 
-            if dist < 2:  # High
-                heatmap[target[0] + dx][target[1] + dy] = HIGH
-            elif dist < 5:  # Medium
-                heatmap[target[0] + dx][target[1] + dy] = MEDIUM
+    for t in range(total_gen):
+        for i in range(NUM_AGENTS):
+            p_next[i].coord.x = tmp_X[i]
+            p_next[i].coord.y = tmp_Y[i]
+            p_next[i].heading.x = tmp_head_X[i]
+            p_next[i].heading.y = tmp_head_Y[i]
 
-    low_number_old = 0
-    low_number_new = 0
-    medium_number_old = 0
-    medium_number_new = 0
-    high_number_old = 0
-    high_number_new = 0
+            if t == 0:
+                p_initial[i].coord.x = begining_tmp_X[i]
+                p_initial[i].coord.y = begining_tmp_Y[i]
+                p_initial[i].heading.x = begining_tmp_head_X[i]
+                p_initial[i].heading.y = begining_tmp_head_Y[i]
 
-    for i in range(NUM_AGENTS):
-        p_next[i].coord.x = tmp_X[i]
-        p_next[i].coord.y = tmp_Y[i]
-        p_next[i].heading.x = tmp_head_X[i]
-        p_next[i].heading.y = tmp_head_Y[i]
-
-        p_initial[i].coord.x = begining_tmp_X[i]
-        p_initial[i].coord.y = begining_tmp_Y[i]
-        p_initial[i].heading.x = begining_tmp_head_X[i]
-        p_initial[i].heading.y = begining_tmp_head_Y[i]
-
-        if heatmap[int(begining_tmp_X[i])][int(begining_tmp_Y[i])] == LOW:
-            low_number_old += 1
-        if heatmap[int(tmp_X[i])][int(tmp_Y[i])] == LOW:
-            low_number_new += 1
-
-        if heatmap[int(begining_tmp_X[i])][int(begining_tmp_Y[i])] == MEDIUM:
-            medium_number_old += 1
-        if heatmap[int(tmp_X[i])][int(tmp_Y[i])] == MEDIUM:
-            medium_number_new += 1
-
-        if heatmap[int(begining_tmp_X[i])][int(begining_tmp_Y[i])] == HIGH:
-            high_number_old += 1
-        if heatmap[int(tmp_X[i])][int(tmp_Y[i])] == HIGH:
-            high_number_new += 1
-
-    print("Low agents:", "Old:", low_number_old, "New", low_number_new)
-    print("MEDIUM agents:", "Old:", medium_number_old, "New", medium_number_new)
-    print("HIGH agents:", "Old:", high_number_old, "New", high_number_new)
-    random_location(p_initial, p_next, target, sizeX, sizeY, generation, fitness)
+        agents_p.append(p_next)
+    random_location(p_initial, agents_p, total_target, sizeX, sizeY)
