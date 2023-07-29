@@ -9,7 +9,7 @@ REPETITIONS = 10  # repetitions of each individual
 NUM_AGENTS = 50
 
 # Threshold to determine movement
-Threshold = 0.69
+Threshold = 0.68
 
 # movement
 STRAIGHT = 0

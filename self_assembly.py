@@ -257,12 +257,10 @@ class SelfAssembly:
         # Store fitness for all population
         fitness = np.zeros(POP_SIZE, dtype=float)
 
-        # action values of stored run
-        actionValues = [[0] * MAX_TIME for _ in range(NUM_AGENTS)]
-
         # store agent movement
         agent_maxfit = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         tmp_agent_maxfit_final = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
+        temp_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
 
         # file names
         directory = "results"
@@ -314,7 +312,12 @@ class SelfAssembly:
             avg = 0.0
             maxID = - 1
 
-            temp_p = p_initial
+            for i in range(NUM_AGENTS):
+                temp_p[i].coord.x = p_initial[i].coord.x
+                temp_p[i].coord.y = p_initial[i].coord.y
+                temp_p[i].heading.x = p_initial[i].heading.x
+                temp_p[i].heading.y = p_initial[i].heading.y
+                temp_p[i].type = p_initial[i].type
             # population level (iterate through individuals)
             # POP_SIZE = 50
             # Each generation have 50 population, 100 agents
@@ -322,9 +325,6 @@ class SelfAssembly:
                 # fitness evaluation - initialisation based on case
                 fitness[ind] = 0.0
                 tmp_fitness = 0.0
-
-                # reset prediction storage
-                pred = [0.0] * SENSORS
 
                 store = False
 
@@ -454,7 +454,7 @@ class SelfAssembly:
         return p_initial
 
     def target_move(self, agent):
-        grid = [[0] for _ in range(self.sizeY) for _ in range(self.sizeX)]
+        grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
 
         for i in range(NUM_AGENTS):
             grid[agent[i].coord.x][agent[i].coord.y] = 1  # set grid cell occupied
@@ -472,6 +472,9 @@ class SelfAssembly:
 
             if grid[tmp_X][tmp_Y] == 0:
                 block = False   # Move the target
+
+        self.target[0] = tmp_X
+        self.target[1] = tmp_Y
 
     def update_heatmap(self, agent):
         self.heatmap[self.target[0]][self.target[1]] = HIGH  # Change old Pos to HIGH zone
