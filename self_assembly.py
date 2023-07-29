@@ -388,8 +388,10 @@ class SelfAssembly:
                     f.write("\n")
                 f.write("\n")
 
-            if gen >= 1:
-                self.update_heatmap()
+            # Move the target when the score is larger than the threshold
+            if max >= Threshold:
+                self.update_heatmap(agent_maxfit)
+
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)
             "Do target moving HERE"
@@ -451,19 +453,29 @@ class SelfAssembly:
         # End Location Initialisation
         return p_initial
 
-    def target_move(self):
-        print("Target: ", "X", self.target[0], "Y", self.target[1])
-        # self.heatmap[self.target[0]][self.target[1]] = MEDIUM   # Release the temperature
+    def target_move(self, agent):
+        grid = [[0] for _ in range(self.sizeY) for _ in range(self.sizeX)]
 
-        randInd = random.randint(-1, 1)
-        if random.random() < 0:  # West & East
-            self.target[0] += randInd
-        else:  # North & South
-            self.target[1] += randInd
+        for i in range(NUM_AGENTS):
+            grid[agent[i].coord.x][agent[i].coord.y] = 1  # set grid cell occupied
 
-    def update_heatmap(self):
-        self.target_move()
-        print("New Target: ", "X", self.target[0], self.target[1])
+        block = True
+        while block:
+            randInd = random.randint(0, 1)
+            direction = [-1, 1]
+            if random.random() < 0.5:  # West & East
+                tmp_X = self.target[0] + direction[randInd]
+                tmp_Y = self.target[1]
+            else:  # North & South
+                tmp_X = self.target[0]
+                tmp_Y = self.target[1] + direction[randInd]
+
+            if grid[tmp_X][tmp_Y] == 0:
+                block = False   # Move the target
+
+    def update_heatmap(self, agent):
+        self.heatmap[self.target[0]][self.target[1]] = HIGH  # Change old Pos to HIGH zone
+        self.target_move(agent)
         self.heatmap[self.target[0]][self.target[1]] = AIM     # Update new aim
 
         # All heatmap is low

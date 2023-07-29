@@ -8,6 +8,9 @@ MAX_GENS = 100  # maximum generations
 REPETITIONS = 10  # repetitions of each individual
 NUM_AGENTS = 50
 
+# Threshold to determine movement
+Threshold = 0.7
+
 # movement
 STRAIGHT = 0
 TURN = 1
