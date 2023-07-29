@@ -157,18 +157,20 @@ if __name__ == "__main__":
         if line[0] != 'G' and line[0] != 'F' and line[0] != ' ' and line[0] != 'T':
             gen = gen = re.split('[,.: \n]', line)
             if len(gen) > 10:
-                tmp_X.append(gen[0])
-                tmp_Y.append(gen[2])
-                tmp_head_X.append(gen[8])
-                tmp_head_Y.append(gen[10])
-
-                begining_tmp_X.append(gen[4])  # Max generation agents' original position
-                begining_tmp_Y.append(gen[6])
-                begining_tmp_head_X.append(gen[12])
-                begining_tmp_head_Y.append(gen[14])
+                if not init_gen:
+                    tmp_X.append(gen[0])
+                    tmp_Y.append(gen[2])
+                    tmp_head_X.append(gen[8])
+                    tmp_head_Y.append(gen[10])
+                else:
+                    begining_tmp_X.append(gen[4])  # Max generation agents' original position
+                    begining_tmp_Y.append(gen[6])
+                    begining_tmp_head_X.append(gen[12])
+                    begining_tmp_head_Y.append(gen[14])
 
         if line_count == NUM_AGENTS + 4:
             total_target.append(target)
+            init_gen = False
             line_count = 0
             continue
         line_count += 1
@@ -177,10 +179,11 @@ if __name__ == "__main__":
 
     for t in range(total_gen):
         for i in range(NUM_AGENTS):
-            p_next[i].coord.x = tmp_X[i]
-            p_next[i].coord.y = tmp_Y[i]
-            p_next[i].heading.x = tmp_head_X[i]
-            p_next[i].heading.y = tmp_head_Y[i]
+            if t > 0:
+                p_next[i].coord.x = tmp_X[i]
+                p_next[i].coord.y = tmp_Y[i]
+                p_next[i].heading.x = tmp_head_X[i]
+                p_next[i].heading.y = tmp_head_Y[i]
 
             if t == 0:
                 p_initial[i].coord.x = begining_tmp_X[i]
