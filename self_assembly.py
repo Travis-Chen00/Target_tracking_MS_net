@@ -388,13 +388,13 @@ class SelfAssembly:
                     f.write("\n")
                 f.write("\n")
 
+            # Do selection & mutation per generation
+            self.minimalSurprise.select_mutate(maxID, fitness)
+
+            "Do target moving HERE"
             # Move the target when the score is larger than the threshold
             if max >= Threshold:
                 self.update_heatmap(agent_maxfit)
-
-            # Do selection & mutation per generation
-            self.minimalSurprise.select_mutate(maxID, fitness)
-            "Do target moving HERE"
 
             # End evolution runs loop
 
