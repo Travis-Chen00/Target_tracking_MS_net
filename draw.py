@@ -7,22 +7,28 @@ import numpy as np
 import math
 
 
-def random_location(p, agents, target, sizeX, sizeY, move):
+def random_location(final, target, sizeX, sizeY, move):
     # 计算 N 的值
     num_targets = len(target)
     N = math.ceil(math.sqrt(num_targets))  # 向上取整
 
     # 创建 NxN 子图
     fig, axs = plt.subplots(N, N, figsize=(12, 12))
+    fig.subplots_adjust(wspace=0.5, hspace=0.5)
 
     # 为了方便处理，如果 axs 不是二维数组，那么我们将其转化为二维数组
     if len(axs.shape) < 2:
         axs = np.array([[axs]])
+
+    prev_x, prev_y = None, None  # 初始化上一次的目标位置
     move_num = 1
+
     for ge in range(N):
         for j in range(N):
             # 计算当前目标的索引
             idx = ge * N + j
+
+            print(idx)
 
             # 如果当前索引大于目标的数量，那么就没有其他的子图需要画，所以直接退出
             if idx >= num_targets:
@@ -31,6 +37,13 @@ def random_location(p, agents, target, sizeX, sizeY, move):
 
             x = int(target[idx][0]) + 1  # 小网格中心的x坐标
             y = int(target[idx][1]) + 1  # 小网格中心的y坐标
+
+            # 如果上一次的目标位置已经被定义，并且和当前目标位置不同，那么重置 move_num
+            if prev_x is not None and prev_y is not None and (prev_x != x or prev_y != y):
+                move_num = 1
+
+            # 记录当前目标位置，用于下一次循环
+            prev_x, prev_y = x, y
 
             # 创建一个稍大的2D数组，颜色值为蓝色的RGB
             color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 235]) / 255.0  # 浅蓝色
@@ -78,46 +91,27 @@ def random_location(p, agents, target, sizeX, sizeY, move):
             if idx >= num_targets:
                 continue
 
-            if idx == 0:
-                for i in range(NUM_AGENTS):
-                    x = int(p[i].coord.x) + 1
-                    y = int(p[i].coord.y) + 1
+            for i in range(NUM_AGENTS):
+                x = int(final[idx][i].coord.x) + 1
+                y = int(final[idx][i].coord.y) + 1
 
-                    if int(p[i].heading.x) == 1 and int(p[i].heading.y) == 0:  # Face east
-                        vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
-                    elif int(p[i].heading.x) == -1 and int(p[i].heading.y) == 0:  # Face west
-                        vertices = [(x + 0.28, y - 0.28), (x + 0.28, y + 0.28), (x - 0.28, y)]
-                    elif int(p[i].heading.x) == 0 and int(p[i].heading.y) == 1:  # Face North
-                        vertices = [(x - 0.28, y - 0.28), (x + 0.28, y - 0.28), (x, y + 0.28)]
-                    elif int(p[i].heading.x) == 0 and int(p[i].heading.y) == -1:  # Face south
-                        vertices = [(x - 0.28, y + 0.28), (x + 0.28, y + 0.28), (x, y - 0.28)]
+                if int(final[idx][i].heading.x) == 1 and int(final[idx][i].heading.y) == 0:  # Face east
+                    vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
+                elif int(final[idx][i].heading.x) == -1 and int(final[idx][i].heading.y) == 0:  # Face west
+                    vertices = [(x + 0.28, y - 0.28), (x + 0.28, y + 0.28), (x - 0.28, y)]
+                elif int(final[idx][i].heading.x) == 0 and int(final[idx][i].heading.y) == 1:  # Face North
+                    vertices = [(x - 0.28, y - 0.28), (x + 0.28, y - 0.28), (x, y + 0.28)]
+                elif int(final[idx][i].heading.x) == 0 and int(final[idx][i].heading.y) == -1:  # Face south
+                    vertices = [(x - 0.28, y + 0.28), (x + 0.28, y + 0.28), (x, y - 0.28)]
 
-                    triangle = Polygon(vertices, closed=True, edgecolor='black', facecolor='black')
-                    axs[ge][j].add_patch(triangle)
-
-            elif idx > 0:
-                for i in range(len(agents)):
-                    for k in range(NUM_AGENTS):
-                        x = int(agents[i][k].coord.x) + 1
-                        y = int(agents[i][k].coord.y) + 1
-
-                        if int(agents[i][k].heading.x) == 1 and int(agents[i][k].heading.y) == 0:  # Face east
-                            vertices = [(x - 0.28, y - 0.28), (x - 0.28, y + 0.28), (x + 0.28, y)]
-                        elif int(agents[i][k].heading.x) == -1 and int(agents[i][k].heading.y) == 0:  # Face west
-                            vertices = [(x + 0.28, y - 0.28), (x + 0.28, y + 0.28), (x - 0.28, y)]
-                        elif int(agents[i][k].heading.x) == 0 and int(agents[i][k].heading.y) == 1:  # Face North
-                            vertices = [(x - 0.28, y - 0.28), (x + 0.28, y - 0.28), (x, y + 0.28)]
-                        elif int(agents[i][k].heading.x) == 0 and int(agents[i][k].heading.y) == -1:  # Face south
-                            vertices = [(x - 0.28, y + 0.28), (x + 0.28, y + 0.28), (x, y - 0.28)]
-
-                        triangle = Polygon(vertices, closed=True, edgecolor='black', facecolor='black')
-                        axs[ge][j].add_patch(triangle)
+                triangle = Polygon(vertices, closed=True, edgecolor='black', facecolor='black')
+                axs[ge][j].add_patch(triangle)
 
     plt.show()
 
 
 if __name__ == "__main__":
-    file = "results/agents_Agents_50_TargetX_7_TargetY_7_moving"
+    file = "results/agents_Agents_50_TargetX_7_TargetY_7"
     sizeX = 15
     sizeY = 15
 
@@ -137,6 +131,9 @@ if __name__ == "__main__":
     total_target = []
 
     init_gen = False
+
+    agents_p = []
+    original = []
 
     target = []
     generation = 0
@@ -158,39 +155,51 @@ if __name__ == "__main__":
         if line[0] != 'G' and line[0] != 'F' and line[0] != ' ' and line[0] != 'T':
             gen = gen = re.split('[,.: \n]', line)
             if len(gen) > 10:
-                if not init_gen:
-                    tmp_X.append(gen[0])
-                    tmp_Y.append(gen[2])
-                    tmp_head_X.append(gen[8])
-                    tmp_head_Y.append(gen[10])
-                else:
-                    begining_tmp_X.append(gen[4])  # Max generation agents' original position
-                    begining_tmp_Y.append(gen[6])
-                    begining_tmp_head_X.append(gen[12])
-                    begining_tmp_head_Y.append(gen[14])
+                tmp_X.append(gen[0])
+                tmp_Y.append(gen[2])
+                tmp_head_X.append(gen[8])
+                tmp_head_Y.append(gen[10])
+
+                begining_tmp_X.append(gen[4])  # Max generation agents' original position
+                begining_tmp_Y.append(gen[6])
+                begining_tmp_head_X.append(gen[12])
+                begining_tmp_head_Y.append(gen[14])
 
         if line_count == NUM_AGENTS + 4:
+            if total_gen == 1:
+                total_target.append(target)
             total_target.append(target)
             init_gen = False
             line_count = 0
-            continue
-        line_count += 1
 
-    agents_p = []
-
-    for t in range(total_gen):
-        for i in range(NUM_AGENTS):
-            if t > 0:
+            for i in range(NUM_AGENTS):
                 p_next[i].coord.x = tmp_X[i]
                 p_next[i].coord.y = tmp_Y[i]
                 p_next[i].heading.x = tmp_head_X[i]
                 p_next[i].heading.y = tmp_head_Y[i]
 
-            if t == 0:
                 p_initial[i].coord.x = begining_tmp_X[i]
                 p_initial[i].coord.y = begining_tmp_Y[i]
                 p_initial[i].heading.x = begining_tmp_head_X[i]
                 p_initial[i].heading.y = begining_tmp_head_Y[i]
 
-        agents_p.append(p_next)
-    random_location(p_initial, agents_p, total_target, sizeX, sizeY, total_gen)
+            agents_p.append(p_next)
+            original.append(p_initial)
+            # Reset
+            tmp_X, tmp_Y, tmp_head_X, tmp_head_Y = [], [], [], []
+            begining_tmp_X, begining_tmp_Y, begining_tmp_head_X, begining_tmp_head_Y = [], [], [], []
+            p_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
+            p_next = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
+
+            continue
+        line_count += 1
+
+    final_pos = []
+    for i in range(len(agents_p)):
+        if i == 0:
+            final_pos.append(original[i])
+            final_pos.append(agents_p[i])
+        else:
+            final_pos.append(agents_p[i])
+
+    random_location(final_pos, total_target, sizeX, sizeY, total_gen)

@@ -215,7 +215,7 @@ class SelfAssembly:
                         self.fit += 1
                 elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
-                        self.fit += 1  # 朝目标移动，且不进入高温区
+                        self.fit += 1  # 朝目标移动,且不进入高温区 / 保持在中温区
 
             # End Agent Iterations
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
