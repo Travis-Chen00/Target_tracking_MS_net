@@ -5,6 +5,8 @@
 **Heat Minimal Surprise (Heat-MS)**
 
 Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise network for the target tracking.
+![Action network](/img/Action_net.png)
+
 
 ## Training Strategy
 
