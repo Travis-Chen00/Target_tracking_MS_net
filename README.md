@@ -20,6 +20,7 @@ The target employs the following moving strategy:
 if threshold >= 0.68:
     if swarms_in_high_zone < 3:
         Moving
+```
 
 ## Evolution
 ### Grid size
