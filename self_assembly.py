@@ -404,7 +404,7 @@ class SelfAssembly:
             # Move the target when the score is larger than the threshold
             # Make sure there is no obstacle around the target
             if max >= Threshold:
-                self.update_heatmap(agent_maxfit)
+                self.update_heatmap(p_initial)
 
             # End evolution runs loop
 
