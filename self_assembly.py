@@ -405,10 +405,15 @@ class SelfAssembly:
             # Make sure there is no obstacle around the target
             if max >= Threshold:
                 move = True
+                block_num = 0
                 for i in range(NUM_AGENTS):
                     if self.heatmap[agent_maxfit[i].coord.x][agent_maxfit[i].coord.y] == HIGH:
-                        move = False
+                        block_num += 1
 
+                if block_num > 3:
+                    move = False
+                    block_num = 0
+                    
                 if move:
                     self.update_heatmap(agent_maxfit)
 
