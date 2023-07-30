@@ -1,3 +1,4 @@
+import copy
 import os
 
 import numpy as np
@@ -65,17 +66,15 @@ class SelfAssembly:
 
         moving_file = os.path.join(directory, moving)
 
-        # Initialise agents
-        for i in range(noagents):
-            # Set the initialised coordinates to each agent
-            self.p[i].coord.x = p_initial[i].coord.x
-            self.p[i].coord.y = p_initial[i].coord.y
-            self.p[i].heading.x = p_initial[i].heading.x
-            self.p[i].heading.y = p_initial[i].heading.y
+        self.p = p_initial.copy()
 
+        # 初始化init_p的位置移动到循环外部，并在每次循环开始都记录初始位置
+
+        print("Gen: ", gen, "Pop", ind, "Initial p: ",
+              p_initial[0].coord.x, p_initial[0].coord.y)
         # random_location(p_initial, self.p, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
 
-        storage_p = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(maxTime)]
+        storage_p = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(maxTime + 1)]
 
         while timeStep < maxTime:
             # determine occupied grid cells (0 - unoccupied, 1 - occupied)
@@ -213,16 +212,7 @@ class SelfAssembly:
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
                         self.fit += 1  # 朝目标移动,且不进入高温区 / 保持在中温区
 
-                if timeStep == 0:
-                    storage_p[timeStep][i].coord.x = self.p[i].coord.x
-                    storage_p[timeStep][i].coord.y = self.p[i].coord.y
-                    storage_p[timeStep][i].heading.x = self.p[i].heading.x
-                    storage_p[timeStep][i].heading.y = self.p[i].heading.y
-                else:
-                    storage_p[timeStep][i].coord.x = self.p_next[i].coord.x
-                    storage_p[timeStep][i].coord.y = self.p_next[i].coord.y
-                    storage_p[timeStep][i].heading.x = self.p_next[i].heading.x
-                    storage_p[timeStep][i].heading.y = self.p_next[i].heading.y
+                storage_p[timeStep] = self.p_next.copy()
 
             # End Agent Iterations
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
@@ -238,7 +228,7 @@ class SelfAssembly:
         # Pred_return = 1 / T * N
         # for i in range(SENSORS):
         #     self.minimalSurprise.prediction.pred_return[i] = float(predReturn[i]) / (maxTime * noagents)
-        max_p = self.p
+        max_p = self.p.copy()
 
         # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
         fit_return = ((float(fit) / float(noagents * maxTime * SENSORS))
@@ -255,14 +245,14 @@ class SelfAssembly:
             f.write(f"Fitness: {self.tmp_fit} \n")
             f.write(f"\n")
 
-            for t in range(maxTime):
+            for t in range(maxTime + 1):
                 for i in range(NUM_AGENTS):
                     if t == 0:
-                        f.write(f"{t}, {i}: {storage_p[t][i].coord.x}, {storage_p[t][i].coord.y}, "
-                                f"{storage_p[t][i].heading.x}, {storage_p[t][i].heading.y}\n")
+                        f.write(f"{t}, {i}: {p_initial[i].coord.x}, {p_initial[i].coord.y}, "
+                                f"{p_initial[i].heading.x}, {p_initial[i].heading.y}\n")
                     else:
-                        f.write(f"{t}, {i}: {storage_p[t][i].coord.x}, {storage_p[t][i].coord.y}, "
-                                f"{storage_p[t][i].heading.x}, {storage_p[t][i].heading.y}\n")
+                        f.write(f"{t}, {i}: {storage_p[t - 1][i].coord.x}, {storage_p[t - 1][i].coord.y}, "
+                                f"{storage_p[t - 1][i].heading.x}, {storage_p[t - 1][i].heading.y}\n")
                 f.write(f"\n")
 
             f.close()
@@ -285,14 +275,14 @@ class SelfAssembly:
         temp_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
 
         # file names
-        directory = "/content/drive/MyDrive/Minimal_Surprise/result"
+        directory = "result_1"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
         file = f"_Agents_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
 
         # fit_file = os.path.join(directory, "fitness" + file)
-        agent_file = os.path.join(directory, "agents" + file)
+        agent_file = os.path.join(directory, file)
 
         # initialise weights of neural nets in range [-0.5, 0.5]
         # Shape (50, 3, 224)
@@ -329,7 +319,6 @@ class SelfAssembly:
         # 50 Agents * 10 times repetitions ==> 500 individuals
         # Total: 50 * 10 * 100 ==> 50000 generations
         for gen in range(MAX_GENS):
-
             max = 0.0
             avg = 0.0
             maxID = - 1
@@ -384,19 +373,14 @@ class SelfAssembly:
                         agent_maxfit[i].heading.y = tmp_agent_maxfit_final[i].heading.y
                         agent_maxfit[i].type = tmp_agent_maxfit_final[i].type
 
-                    p_initial = agent_maxfit
+                    tmp_initial = agent_maxfit.copy()
                 # End Fitness store
                 print("Score for generation: ", gen + 1, "Score: ", max)
             # End population loop
 
-            # if gen >= 1:
-            #     random_location(p_initial, agent_maxfit, self.target, self.sizeX, self.sizeY, 1, 0, self.heatmap)
+            p_initial = tmp_initial.copy()  # Update Initial pos
+
             print(f"#{gen} {max} ({maxID})")
-
-            # with open(fit_file, "a") as f:
-            #     f.write(f"{self.sizeX} {self.sizeY} {gen} {max} {avg / POP_SIZE} ({maxID}) ")
-            #     f.write("\n")
-
             with open(agent_file, "a") as f:
                 f.write(f"Gen: {gen}\n")
                 f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
@@ -411,6 +395,7 @@ class SelfAssembly:
                 f.write("\n")
 
             self.tmp_fit = 0
+
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)
 
@@ -501,7 +486,7 @@ class SelfAssembly:
                 tmp_Y = self.target[1] + direction[randInd]
 
             if grid[tmp_X][tmp_Y] == 0 and 0 <= tmp_X <= self.sizeX and 0 <= tmp_Y <= self.sizeY:
-                block = False   # Move the target and Avoid walls
+                block = False  # Move the target and Avoid walls
 
         self.target[0] = tmp_X
         self.target[1] = tmp_Y
@@ -509,7 +494,7 @@ class SelfAssembly:
     def update_heatmap(self, agent):
         self.heatmap[self.target[0]][self.target[1]] = HIGH  # Change old Pos to HIGH zone
         self.target_move(agent)
-        self.heatmap[self.target[0]][self.target[1]] = AIM     # Update new aim
+        self.heatmap[self.target[0]][self.target[1]] = AIM  # Update new aim
 
         # All heatmap is low
         self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]

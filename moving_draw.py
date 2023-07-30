@@ -24,7 +24,7 @@ def moving(agents, generation, target, pop, sizeX, sizeY):
         ax = fig.add_subplot(N, N, gen + 1)  # 将当前子图添加到figure中
 
         # 对于当前代的每个时间点进行迭代
-        for t in range(MAX_TIME):
+        for t in range(MAX_TIME + 1):
             # 清除当前子图
             ax.clear()
 
@@ -100,7 +100,7 @@ def moving(agents, generation, target, pop, sizeX, sizeY):
 
 
 if __name__ == "__main__":
-    agent_p = [[[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for i in range(MAX_TIME)] for _ in
+    agent_p = [[[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for i in range(MAX_TIME + 1)] for _ in
                range(2)]
     total_gen, total_target, total_pop = [], [], []
 
