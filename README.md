@@ -4,8 +4,8 @@
 
 **Heat Minimal Surprise (Heat-MS)**
 
-Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise network for the target tracking.
-<img src="/img/Action_net.png" alt="Action network" width="200"/>
+Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise network for the target tracking. <br/>
+<img src="/img/Action_net.png" alt="Action network" width="500"/>
 
 ### Heat Zone
 <span style="color:red">Red: *Dangerous Zone*.</span> 
@@ -17,12 +17,12 @@ Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approa
 <span style="color:blue">Blue: *Cold Zone*.</span> 
 - Too far away from the target.
 
-<img src="/img/Heat_zone.png" alt="Heat Zones" width="200"/>
+<img src="/img/Heat_Zone.png" alt="Heat Zones" width="500"/>
 
 ### Sensors
 14 Object Sensors + 1 Temperature Sensors
 - Temperature Sensor is in the same location as S0
-<img src="/img/14 sensors.png" alt="Heat Zones" width="200"/>
+<img src="/img/14 sensors.png" alt="Heat Zones" width="500"/>
 
 ## Training Strategy
 
