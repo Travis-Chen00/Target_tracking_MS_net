@@ -414,7 +414,7 @@ class SelfAssembly:
                     move = False
 
                 if move:
-                    self.update_heatmap(p_initial)
+                    self.update_heatmap(tmp_initial)
 
             # End evolution runs loop
 
