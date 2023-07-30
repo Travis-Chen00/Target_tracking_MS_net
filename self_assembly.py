@@ -339,7 +339,7 @@ class SelfAssembly:
 
                 store = False
 
-                tmp_fitness, max_p = self.execute(gen, ind, p_initial, MAX_TIME, 0, NUM_AGENTS)
+                tmp_fitness, max_p = self.execute(gen, ind, temp_p, MAX_TIME, 0, NUM_AGENTS)
                 print("Fitness for population:", ind + 1, "Score:", tmp_fitness)
 
                 # max fitness of Repetitions kept
