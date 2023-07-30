@@ -228,7 +228,6 @@ class SelfAssembly:
         # Pred_return = 1 / T * N
         # for i in range(SENSORS):
         #     self.minimalSurprise.prediction.pred_return[i] = float(predReturn[i]) / (maxTime * noagents)
-        max_p = self.p.copy()
 
         # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
         fit_return = ((float(fit) / float(noagents * maxTime * SENSORS))
@@ -237,6 +236,7 @@ class SelfAssembly:
         self.fit = 0  # Reset
 
         if self.tmp_fit <= fit_return:
+            max_p = self.p.copy()
             self.tmp_fit = fit_return
             f = open(moving_file, "w")
             f.write(f"Gen: {gen} \n")
@@ -321,7 +321,7 @@ class SelfAssembly:
         for gen in range(MAX_GENS):
             max = 0.0
             avg = 0.0
-            maxID = - 1
+            maxID = -1
 
             for i in range(NUM_AGENTS):
                 temp_p[i].coord.x = p_initial[i].coord.x
@@ -378,6 +378,7 @@ class SelfAssembly:
                 print("Score for generation: ", gen + 1, "Score: ", max)
             # End population loop
 
+            print("Next gen: ", p_initial[0].coord.x, p_initial[0].coord.y)
             p_initial = tmp_initial.copy()  # Update Initial pos
 
             print(f"#{gen} {max} ({maxID})")
