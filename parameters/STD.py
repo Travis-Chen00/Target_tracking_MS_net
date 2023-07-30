@@ -1,5 +1,5 @@
 # experimental setup
-MUTATION = 0.03  # 0.1 - mutation rate
+MUTATION = 0.05  # 0.1 - mutation rate
 POP_SIZE = 50  # population
 
 MAX_TIME = 300  # time per run
