@@ -6,7 +6,7 @@ MAX_TIME = 300  # time per run
 MAX_GENS = 100  # maximum generations
 
 REPETITIONS = 10  # repetitions of each individual
-NUM_AGENTS = 50
+NUM_AGENTS = 20
 
 # Threshold to determine movement
 Threshold = 0.67
