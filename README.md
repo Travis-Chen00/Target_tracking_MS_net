@@ -1,17 +1,25 @@
 # Target Tracking with Minimal Surprise network
 
 ## Model
-Heat Minimal Surprise (Heat-MS)
+
+**Heat Minimal Surprise (Heat-MS)**
+
+Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise strategy for improved performance and efficiency.
 
 ## Training Strategy
-Genetic Algorithm
+
+**Genetic Algorithm**
+
+We employ the [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) as our primary training strategy. This evolutionary algorithm is inspired by the process of natural selection and combines elements of random search and optimization for superior outcomes.
 
 ## Target Moving Strategy
-```
-  if threshold >= 0.68:
-      if swarms_in_high_zone < 3:
-          Moving
-```
+
+The target employs the following moving strategy:
+
+```python
+if threshold >= 0.68:
+    if swarms_in_high_zone < 3:
+        Moving
 
 ## Evolution
 ### Grid size
