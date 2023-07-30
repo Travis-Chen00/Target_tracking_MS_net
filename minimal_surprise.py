@@ -63,17 +63,6 @@ class MinimalSurprise:
 
             # Mutation and selection
             else:
-                # r = random.random()
-                # i = 0
-                # while r > pr[i] and i < POP_SIZE - 1:
-                #     i += 1
-                # for j in range(LAYERS):
-                #     for k in range(CONNECTIONS):
-                #         self.prediction.weight_predictionNet[ind][j][k] = \
-                #             self.prediction.weight_predictionNet[i][j][k]
-                #         self.action.weight_actionNet[ind][j][k] = \
-                #             self.action.weight_actionNet[i][j][k]
-
                 # Mutate network
                 for k in range(PRE_CONNECTIONS):
                     if random.random() < MUTATION:  # prediction network

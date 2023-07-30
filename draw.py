@@ -7,6 +7,7 @@ import numpy as np
 import math
 import time
 
+
 def random_location(final, target, sizeX, sizeY, move):
     num_targets = len(target)
     N = math.ceil(math.sqrt(num_targets))  # 向上取整
@@ -86,14 +87,14 @@ def random_location(final, target, sizeX, sizeY, move):
                 ax.add_patch(triangle)
 
             plt.draw()  # 绘制图像
-            plt.pause(1.5)  # 等待0.5秒
+            plt.pause(1)  # 等待0.5秒
 
     plt.ioff()  # 关闭交互模式
     plt.show()
 
 
 if __name__ == "__main__":
-    file = "results/agents_Agents_50_TargetX_7_TargetY_7"
+    file = "results/agents_Agents_50_TargetX_7_TargetY_7_100Gen"
     sizeX = 15
     sizeY = 15
 

@@ -77,37 +77,3 @@ class Prediction:
         for i in range(self.output):
             self.predictions[agent][i] = net[i]
 
-        # If the shape is determined
-        # The prediction of specified sensor should be determined
-        # For example: Line ==> All FORWARD & BACKWARD sensor should be 1
-        # elif self.manipulation == MAN:
-        #     if p[agent].type == LINE:
-        #         # predefined
-        #         self.predictions[agent][S0] = 1
-        #         self.predictions[agent][S3] = 1
-        #
-        #         # learned from output
-        #         self.predictions[agent][S1] = net[1]
-        #         self.predictions[agent][S2] = net[2]
-        #
-        #         self.predictions[agent][S4] = net[4]
-        #         self.predictions[agent][S5] = net[5]
-        #         self.predictions[agent][S_T] = net[OUTPUTP - 1]
-        #
-        #         if SENSOR_MODEL == STDL:  # 14 sensors
-        #             # predefined
-        #             # At least 3 swarms in one line
-        #             # To make sure that, The backward should at least one
-        #             # Otherwise, the forward should be at least 2 agents
-        #             self.predictions[agent][S8] = 1
-        #             self.predictions[agent][S11] = 1
-        #
-        #             # learned
-        #             self.predictions[agent][S6] = net[6]
-        #             self.predictions[agent][S7] = net[7]
-        #
-        #             self.predictions[agent][S9] = net[9]
-        #             self.predictions[agent][S10] = net[10]
-        #
-        #             self.predictions[agent][S12] = net[12]
-        #             self.predictions[agent][S13] = net[13]

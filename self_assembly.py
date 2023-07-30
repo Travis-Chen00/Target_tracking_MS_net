@@ -28,6 +28,8 @@ class SelfAssembly:
         # Evolution count
         self.count = 0
 
+        self.tmp_fit = 0
+
         # Network initialisation
         self.minimalSurprise = MinimalSurprise(INPUTA, INPUTP, HIDDENA, HIDDENP,
                                                OUTPUTA, OUTPUTP, self.manipulation, self.sizeX, self.sizeY)
@@ -55,13 +57,13 @@ class SelfAssembly:
 
         max_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
 
-        trajectory_file = f"agent_trajectory"
-        if log == 1:
-            f = open(trajectory_file, "a")
-            f.write(f"Gen: {gen}\n")
-            f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
-            f.write(f"Agents: {noagents}\n")
-            f.close()
+        moving = f"Agents_{NUM_AGENTS}_TimeStep_{maxTime}_Gen_{gen}"
+        # file names
+        directory = "moving"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        moving_file = os.path.join(directory, moving)
 
         # Initialise agents
         for i in range(noagents):
@@ -72,6 +74,8 @@ class SelfAssembly:
             self.p[i].heading.y = p_initial[i].heading.y
 
         # random_location(p_initial, self.p, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
+
+        storage_p = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(maxTime)]
 
         while timeStep < maxTime:
             # determine occupied grid cells (0 - unoccupied, 1 - occupied)
@@ -87,13 +91,6 @@ class SelfAssembly:
             # Iterate all agents
             # Execute agents one by one in each timeStep
             for i in range(noagents):
-                # store agent trajectory
-                if log == 1:
-                    f = open(trajectory_file, "a")
-                    f.write(f"{timeStep}: {self.p[i].coord.x}, {self.p[i].coord.y}, "
-                            f"{self.p[i].heading.x}, {self.p[i].heading.y}\n")
-                    f.close()
-
                 # Determine current sensor values (S of t)
                 sensor = Sensors(self.sizeX, self.sizeY)
                 temp = self.heatmap[self.p[i].coord.x][self.p[i].coord.y]
@@ -216,6 +213,17 @@ class SelfAssembly:
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
                         self.fit += 1  # 朝目标移动,且不进入高温区 / 保持在中温区
 
+                if timeStep == 0:
+                    storage_p[timeStep][i].coord.x = self.p[i].coord.x
+                    storage_p[timeStep][i].coord.y = self.p[i].coord.y
+                    storage_p[timeStep][i].heading.x = self.p[i].heading.x
+                    storage_p[timeStep][i].heading.y = self.p[i].heading.y
+                else:
+                    storage_p[timeStep][i].coord.x = self.p_next[i].coord.x
+                    storage_p[timeStep][i].coord.y = self.p_next[i].coord.y
+                    storage_p[timeStep][i].heading.x = self.p_next[i].heading.x
+                    storage_p[timeStep][i].heading.y = self.p_next[i].heading.y
+
             # End Agent Iterations
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
             timeStep += 1
@@ -230,14 +238,6 @@ class SelfAssembly:
         # Pred_return = 1 / T * N
         # for i in range(SENSORS):
         #     self.minimalSurprise.prediction.pred_return[i] = float(predReturn[i]) / (maxTime * noagents)
-
-        if log == 1:
-            f = open(trajectory_file, "a")
-            for i in range(noagents):
-                f.write(f"{maxTime}: {self.p[i].coord.x}, {self.p[i].coord.y}, "
-                        f"{self.p[i].heading.x}, {self.p[i].heading.y}\n")
-            f.close()
-
         max_p = self.p
 
         # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
@@ -245,6 +245,28 @@ class SelfAssembly:
                       + float(self.fit) / float(noagents * maxTime)) * 1 / 2
         # fit_return = float(self.fit) / float(noagents * maxTime)
         self.fit = 0  # Reset
+
+        if self.tmp_fit <= fit_return:
+            self.tmp_fit = fit_return
+            f = open(moving_file, "w")
+            f.write(f"Gen: {gen} \n")
+            f.write(f"Pop: {ind} \n")
+            f.write(f"Target: {self.target[0]}, {self.target[1]} \n")
+            f.write(f"Fitness: {self.tmp_fit} \n")
+            f.write(f"\n")
+
+            for t in range(maxTime):
+                for i in range(NUM_AGENTS):
+                    if t == 0:
+                        f.write(f"{t}, {i}: {storage_p[t][i].coord.x}, {storage_p[t][i].coord.y}, "
+                                f"{storage_p[t][i].heading.x}, {storage_p[t][i].heading.y}\n")
+                    else:
+                        f.write(f"{t}, {i}: {storage_p[t][i].coord.x}, {storage_p[t][i].coord.y}, "
+                                f"{storage_p[t][i].heading.x}, {storage_p[t][i].heading.y}\n")
+                f.write(f"\n")
+
+            f.close()
+
         return fit_return, max_p
 
     """
@@ -388,13 +410,21 @@ class SelfAssembly:
                     f.write("\n")
                 f.write("\n")
 
+            self.tmp_fit = 0
             # Do selection & mutation per generation
             self.minimalSurprise.select_mutate(maxID, fitness)
 
             "Do target moving HERE"
             # Move the target when the score is larger than the threshold
+            # Make sure there is no obstacle around the target
             if max >= Threshold:
-                self.update_heatmap(agent_maxfit)
+                move = True
+                for i in range(NUM_AGENTS):
+                    if self.heatmap[agent_maxfit[i].coord.x][agent_maxfit[i].coord.y] == HIGH:
+                        move = False
+
+                if move:
+                    self.update_heatmap(agent_maxfit)
 
             # End evolution runs loop
 
