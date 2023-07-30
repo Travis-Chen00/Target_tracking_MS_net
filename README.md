@@ -5,8 +5,24 @@
 **Heat Minimal Surprise (Heat-MS)**
 
 Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise network for the target tracking.
-![Action network](/img/Action_net.png)
+<img src="/img/Action_net.png" alt="Action network" width="200"/>
 
+### Heat Zone
+<span style="color:red">Red: *Dangerous Zone*.</span> 
+- Too close to the target, swarms should avoid. 
+
+<span style="color:orange">Orange: *Safety Zone*.</span> 
+- All swarms in this zone are perfect. 
+
+<span style="color:blue">Blue: *Cold Zone*.</span> 
+- Too far away from the target.
+
+<img src="/img/Heat_zone.png" alt="Heat Zones" width="200"/>
+
+### Sensors
+14 Object Sensors + 1 Temperature Sensors
+- Temperature Sensor is in the same location as S0
+<img src="/img/14 sensors.png" alt="Heat Zones" width="200"/>
 
 ## Training Strategy
 
