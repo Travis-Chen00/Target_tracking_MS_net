@@ -4,13 +4,13 @@
 
 **Heat Minimal Surprise (Heat-MS)**
 
-Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise strategy for improved performance and efficiency.
+Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise network for the target tracking.
 
 ## Training Strategy
 
 **Genetic Algorithm**
 
-We employ the [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) as our primary training strategy. This evolutionary algorithm is inspired by the process of natural selection and combines elements of random search and optimization for superior outcomes.
+We employ the [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) as our primary training strategy.
 
 ## Target Moving Strategy
 
