@@ -1,5 +1,5 @@
 # experimental setup
-MUTATION = 0.1  # 0.1 - mutation rate
+MUTATION = 0.03  # 0.1 - mutation rate
 POP_SIZE = 50  # population
 
 MAX_TIME = 300  # time per run
@@ -9,7 +9,7 @@ REPETITIONS = 10  # repetitions of each individual
 NUM_AGENTS = 50
 
 # Threshold to determine movement
-Threshold = 0.68
+Threshold = 0.67
 
 # movement
 STRAIGHT = 0
