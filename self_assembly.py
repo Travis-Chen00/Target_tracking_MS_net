@@ -413,7 +413,7 @@ class SelfAssembly:
                 if block_num > 3:
                     move = False
                     block_num = 0
-                    
+
                 if move:
                     self.update_heatmap(agent_maxfit)
 
