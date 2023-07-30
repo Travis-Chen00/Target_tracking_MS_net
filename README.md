@@ -17,12 +17,12 @@ Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approa
 <span style="color:blue">Blue: *Cold Zone*.</span> 
 - Too far away from the target.
 
-<img src="/img/Heat_Zone.png" alt="Heat Zones" width="500"/>
+<img src="/img/Heat_Zone.png" alt="Heat Zones" width="250"/>
 
 ### Sensors
 14 Object Sensors + 1 Temperature Sensors
 - Temperature Sensor is in the same location as S0
-<img src="/img/14 sensors.png" alt="Heat Zones" width="500"/>
+<img src="/img/14 sensors.png" alt="Heat Zones" width="250"/>
 
 ## Training Strategy
 
