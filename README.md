@@ -8,6 +8,7 @@ Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approa
 <img src="/img/Action_net.png" alt="Action network" width="500"/>
 
 ### Fitness function
+Fitness function for this model
 <img src="/img/Heat_Zone.png" alt="Fitness formula" width="250"/>
 <img src="/img/Heat_Zone.png" alt="Temperature" width="250"/>
 
@@ -39,9 +40,14 @@ We employ the [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorith
 The target employs the following moving strategy:
 
 ```python
-if threshold >= 0.68:
-    if swarms_in_high_zone < 3:
-        Moving
+    # Strategy 1:
+    if threshold >= 0.68:
+        if swarms_in_high_zone < 3:
+            Moving
+
+    # Strategy 2:
+    Moving all rounds
+
 ```
 
 ## Evolution
