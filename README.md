@@ -9,8 +9,8 @@ Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approa
 
 ### Fitness function
 Fitness function for this model<br/>
-<img src="/img/Fitness formula.png" alt="Fitness formula" width="400"/><br/>
-<img src="/img/Temperature.png" alt="Temperature" width="400"/>
+<img src="/img/Fitness formula.png" alt="Fitness formula" width="600"/><br/>
+<img src="/img/Temperature.png" alt="Temperature" width="500"/>
 
 ### Heat Zone
 <span style="color:red">Red: *Dangerous Zone*.</span> 
