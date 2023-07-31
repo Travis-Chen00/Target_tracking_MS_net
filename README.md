@@ -7,6 +7,10 @@
 Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise network for the target tracking. <br/>
 <img src="/img/Action_net.png" alt="Action network" width="500"/>
 
+### Fitness function
+<img src="/img/Heat_Zone.png" alt="Fitness formula" width="250"/>
+<img src="/img/Heat_Zone.png" alt="Temperature" width="250"/>
+
 ### Heat Zone
 <span style="color:red">Red: *Dangerous Zone*.</span> 
 - Too close to the target, swarms should avoid. 
