@@ -206,7 +206,7 @@ class SelfAssembly:
 
                 elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
                         self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
-                    self.fit -= 5  # 高温区
+                    self.fit -= 6  # 高温区
 
                 elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
                     if distance < 0:
@@ -219,7 +219,7 @@ class SelfAssembly:
                         if distance < 0:
                             self.fit += 4  # 朝目标移动,且不进入高温区 / 保持在中温区
                         elif distance >= 0:
-                            self.fit += 0
+                            self.fit += 0.5
 
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
                         self.fit -= 3

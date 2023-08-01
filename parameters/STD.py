@@ -1,7 +1,7 @@
 # experimental setup
 MUTATION = 0.05  # 0.1 - mutation rate
-DYNAMIC_MUTATE = 0.1    # Dynamic mutation
-CATASTROPHE = 0.1       # Catastrophe rate
+DYNAMIC_MUTATE = 0.05   # Dynamic mutation
+CATASTROPHE = 0.05       # Catastrophe rate
 
 POP_SIZE = 500  # population
 
