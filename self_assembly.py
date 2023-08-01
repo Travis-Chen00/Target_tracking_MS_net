@@ -219,13 +219,13 @@ class SelfAssembly:
                         if distance < 0:
                             self.fit += 4  # 朝目标移动,且不进入高温区 / 保持在中温区
                         elif distance >= 0:
-                            self.fit += 0
+                            self.fit += 0.5
 
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
                         self.fit -= 3
 
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
-                        self.fit -= 1
+                        self.fit -= 1.5
 
                 storage_p[timeStep] = self.p_next.copy()
 

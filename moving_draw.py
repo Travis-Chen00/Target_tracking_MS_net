@@ -109,42 +109,63 @@ if __name__ == "__main__":
     file_num = count_files_in_dir(directory)
 
     agent_p = [[[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for i in range(MAX_TIME + 1)] for _ in
-               range(int(5))]
+               range(int(file_num))]
     total_gen, total_target, total_pop = [], [], []
 
-    for gen in range(int(5)):
+    for gen in range(int(file_num)):
         para = False
         generation = None
         filename = directory + "Agents_" + str(NUM_AGENTS) + "_TimeStep_" + str(MAX_TIME) + "_Gen_" + str(gen)
 
+        # with open(filename, 'r') as f:
+        #     line_count = 0
+        #     para_count = 0
+        #     for line in f:
+        #         if not para:
+        #             if line.startswith('G'):
+        #                 generation = int(line.split(":")[1].strip())
+        #                 total_gen.append(generation)
+        #             elif line.startswith('P'):
+        #                 total_pop.append(int(line.split(":")[1].strip()))
+        #             elif line.startswith('T'):
+        #                 total_target.append(list(map(int, line.split(":")[1].strip().split(","))))
+        #
+        #             para_count += 1
+        #             if para_count == 4:
+        #                 para = True
+        #                 para_count = 0
+        #         else:
+        #             gen = re.split('[,.: \n]', line)
+        #
+        #             if len(gen) > 10:
+        #                 print(gen)
+        #                 agent_p[generation][int(gen[0])][int(gen[2])].coord.x = int(gen[4])
+        #                 agent_p[generation][int(gen[0])][int(gen[2])].coord.y = int(gen[6])
+        #                 agent_p[generation][int(gen[0])][int(gen[2])].heading.x = int(gen[8])
+        #                 agent_p[generation][int(gen[0])][int(gen[2])].heading.y = int(gen[10])
+        #             line_count += 1
+        #             if line_count == NUM_AGENTS + 1:
+        #                 line_count = 0
+        #                 para = False
         with open(filename, 'r') as f:
-            line_count = 0
-            para_count = 0
+            generation = None
             for line in f:
-                if not para:
-                    if line.startswith('Ge'):
-                        generation = int(line.split(":")[1].strip())
-                        total_gen.append(generation)
-                    elif line.startswith('P'):
-                        total_pop.append(int(line.split(":")[1].strip()))
-                    elif line.startswith('T'):
-                        total_target.append(list(map(int, line.split(":")[1].strip().split(","))))
-
-                    para_count += 1
-                    if para_count == 4:
-                        para = True
-                        para_count = 0
-                else:
+                line = line.strip()
+                if line.startswith('Gen'):
+                    generation = int(line.split(":")[1].strip())
+                    total_gen.append(generation)
+                elif line.startswith('Pop'):
+                    total_pop.append(int(line.split(":")[1].strip()))
+                elif line.startswith('Target'):
+                    total_target.append(list(map(int, line.split(":")[1].strip().split(","))))
+                elif line.startswith('Fitness'):
+                    continue  # you can handle 'Fitness' here if necessary
+                else:  # handle data lines
                     gen = re.split('[,.: \n]', line)
-
                     if len(gen) > 10:
                         agent_p[generation][int(gen[0])][int(gen[2])].coord.x = int(gen[4])
                         agent_p[generation][int(gen[0])][int(gen[2])].coord.y = int(gen[6])
                         agent_p[generation][int(gen[0])][int(gen[2])].heading.x = int(gen[8])
                         agent_p[generation][int(gen[0])][int(gen[2])].heading.y = int(gen[10])
-                    line_count += 1
-                    if line_count == NUM_AGENTS + 1:
-                        line_count = 0
-                        para = False
 
     moving(agent_p, total_gen, total_target, total_pop, 15, 15)
