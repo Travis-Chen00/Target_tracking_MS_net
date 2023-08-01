@@ -212,14 +212,14 @@ class SelfAssembly:
                     if distance < 0:
                         self.fit += 6
                     else:
-                        self.fit -= 0
+                        self.fit -= 2
 
                 elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
                         if distance < 0:
                             self.fit += 4  # 朝目标移动,且不进入高温区 / 保持在中温区
                         elif distance >= 0:
-                            self.fit += 1
+                            self.fit += 0
 
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
                         self.fit -= 3
