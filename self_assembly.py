@@ -212,7 +212,7 @@ class SelfAssembly:
                     if distance < 0:
                         self.fit += 6
                     else:
-                        self.fit -= 1
+                        self.fit -= 0
 
                 elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
