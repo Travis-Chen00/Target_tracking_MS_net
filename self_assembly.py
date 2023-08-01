@@ -29,6 +29,9 @@ class SelfAssembly:
         # Evolution count
         self.count = 0
 
+        # Index to determine the catastrophe
+        self.cata = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
+
         self.tmp_fit = 0
 
         # Network initialisation
@@ -68,12 +71,7 @@ class SelfAssembly:
 
         self.p = p_initial.copy()
 
-        # 初始化init_p的位置移动到循环外部，并在每次循环开始都记录初始位置
-
-        print("Gen: ", gen, "Pop", ind, "Initial p: ",
-              p_initial[0].coord.x, p_initial[0].coord.y)
         # random_location(p_initial, self.p, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
-
         storage_p = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(maxTime + 1)]
 
         while timeStep < maxTime:
@@ -201,18 +199,51 @@ class SelfAssembly:
                 loc_next = np.array([self.p_next[i].coord.x, self.p_next[i].coord.y])
                 distance = np.linalg.norm(np.array(self.target) - loc_next) \
                            - np.linalg.norm(np.array(self.target) - loc_original)
+
                 if self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
                         self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
-                    self.fit += 1  # 逃避高温区
+                    self.fit += 5  # 逃避高温区
+
+                elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
+                        self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
+                    self.fit -= 3  # 高温区
+
                 elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
-                    if distance < 0 and \
-                            self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:  # 朝目标移动
-                        self.fit += 1
+                    if distance < 0:
+                        self.fit += 6
+                    else:
+                        self.fit -= 2
+
                 elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
-                        self.fit += 1  # 朝目标移动,且不进入高温区 / 保持在中温区
+                        if distance < 0:
+                            self.fit += 4  # 朝目标移动,且不进入高温区 / 保持在中温区
+                        elif distance == 0:
+                            self.fit += 1
+
+                    if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
+                        self.fit -= 3
+
+                    if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
+                        self.fit -= 2
 
                 storage_p[timeStep] = self.p_next.copy()
+
+            # Calculate the number of same position
+            # If it reaches the threshold, trigger the catastrophe
+            cata_num = 0
+            HIGH_num = 0
+            for i in range(NUM_AGENTS):
+                if storage_p[timeStep - 1][i].coord.x == storage_p[timeStep][i].coord.x and \
+                        storage_p[timeStep - 1][i].coord.y == storage_p[timeStep][i].coord.y:
+                    cata_num += 1
+
+                if self.heatmap[storage_p[timeStep][i].coord.x][storage_p[timeStep][i].coord.y] == HIGH:
+                    HIGH_num += 1
+
+            if cata_num == NUM_AGENTS / 2 or HIGH_num > 0:
+                # Do catastrophe
+                self.minimalSurprise.catastrophe(ind)
 
             # End Agent Iterations
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
@@ -221,6 +252,7 @@ class SelfAssembly:
             # Update positions
             temp = self.p_next
             self.p = temp
+            self.cata = temp.copy()
             self.p_next = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]  # Reset p_next
         # End while loop
 
@@ -273,7 +305,7 @@ class SelfAssembly:
         agent_maxfit = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         tmp_agent_maxfit_final = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         temp_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
-
+        tmp_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         # file names
         directory = "result_1"
         if not os.path.exists(directory):
@@ -375,11 +407,14 @@ class SelfAssembly:
 
                     tmp_initial = agent_maxfit.copy()
                 # End Fitness store
+                if fitness[ind] < 0.6:
+                    self.minimalSurprise.dynamic_mutate(maxID)
+
                 print("Score for generation: ", gen + 1, "Score: ", max)
             # End population loop
 
-            print("Next gen: ", p_initial[0].coord.x, p_initial[0].coord.y)
             p_initial = tmp_initial.copy()  # Update Initial pos
+            self.cata = tmp_initial.copy()
 
             print(f"#{gen} {max} ({maxID})")
             with open(agent_file, "a") as f:
@@ -401,20 +436,6 @@ class SelfAssembly:
             self.minimalSurprise.select_mutate(maxID, fitness)
 
             "Do target moving HERE"
-            # Move the target when the score is larger than the threshold
-            # Make sure there is no obstacle around the target
-            # if max >= Threshold:
-            #     move = False
-            #     block_num = 0
-            #     for i in range(NUM_AGENTS):
-            #         if self.heatmap[agent_maxfit[i].coord.x][agent_maxfit[i].coord.y] == HIGH:
-            #             block_num += 1
-            #
-            #     if block_num <= 3:
-            #         move = True
-            #
-            #     if move:
-            #         self.update_heatmap(tmp_initial)
             self.update_heatmap(tmp_initial)
             # End evolution runs loop
 
@@ -433,15 +454,15 @@ class SelfAssembly:
         self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
 
         # Set target
-        for dx in range(-5, 6):
-            for dy in range(-5, 6):
+        for dx in range(-3, 4):
+            for dy in range(-3, 4):
                 # Calculate the distance
                 dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
 
                 if dist < 2:  # High
                     self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
                     grid[self.target[0] + dx][self.target[1] + dy] = 1  # Set positions unavailable
-                elif dist < 5:  # Medium
+                elif dist < 3:  # Medium
                     self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
 
         # generate agent positions
@@ -507,19 +528,19 @@ class SelfAssembly:
         # Set target
         hori = self.target[0] - self.sizeX
         vertical = self.target[1] - self.sizeY
-        if np.abs(hori) >= 5 and np.abs(vertical) >= 5:
-            for dx in range(-5, 6):
-                for dy in range(-5, 6):
+        if np.abs(hori) >= 4 and np.abs(vertical) >= 4:
+            for dx in range(-4, 5):
+                for dy in range(-4, 5):
                     # Calculate the distance
                     dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
 
                     if dist < 2:  # High
                         self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
-                    elif dist < 5:  # Medium
+                    elif dist < 4:  # Medium
                         self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
-        elif np.abs(hori) < 5 and np.abs(vertical) >= 5:
+        elif np.abs(hori) < 4 and np.abs(vertical) >= 4:
             for dx in range(-np.abs(hori), np.abs(hori) + 1):
-                for dy in range(-5, 6):
+                for dy in range(-np.abs(hori), np.abs(hori) + 1):
                     # Calculate the distance
                     dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
 
@@ -530,8 +551,8 @@ class SelfAssembly:
                             self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
                         elif dist < np.abs(hori):  # Medium
                             self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
-        elif np.abs(hori) >= 5 and np.abs(vertical) < 5:
-            for dx in range(-5, 6):
+        elif np.abs(hori) >= 4 and np.abs(vertical) < 4:
+            for dx in range(-np.abs(vertical), np.abs(vertical) + 1):
                 for dy in range(-np.abs(vertical), np.abs(vertical) + 1):
                     # Calculate the distance
                     dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)

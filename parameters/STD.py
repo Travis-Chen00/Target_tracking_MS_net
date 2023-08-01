@@ -1,12 +1,15 @@
 # experimental setup
 MUTATION = 0.05  # 0.1 - mutation rate
-POP_SIZE = 50  # population
+DYNAMIC_MUTATE = 0.1    # Dynamic mutation
+CATASTROPHE = 0.1       # Catastrophe rate
 
-MAX_TIME = 300  # time per run
+POP_SIZE = 250  # population
+
+MAX_TIME = 10  # time per run
 MAX_GENS = 100  # maximum generations
 
 REPETITIONS = 10  # repetitions of each individual
-NUM_AGENTS = 20
+NUM_AGENTS = 50
 
 # Threshold to determine movement
 Threshold = 0.67

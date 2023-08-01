@@ -34,12 +34,12 @@ def random_location(final, target, sizeX, sizeY, move):
             color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 235]) / 255.0  # 创建一个稍大的2D数组，颜色值为蓝色的RGB
 
             # 将目标周围的一圈（9个格子）设为红色
-            for dx in range(-5, 6):
-                for dy in range(-5, 6):
+            for dx in range(-4, 5):
+                for dy in range(-4, 5):
                     dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
                     if dist < 2:
                         color_grid[y + dy, x + dx] = np.array([222, 71, 71]) / 255.0  # 浅红色
-                    elif dist < 5:
+                    elif dist < 4:
                         color_grid[y + dy, x + dx] = np.array([255, 165, 100]) / 255.0  # 浅橘色
 
             plt.clf()  # 清除当前的figure
@@ -94,7 +94,7 @@ def random_location(final, target, sizeX, sizeY, move):
 
 
 if __name__ == "__main__":
-    file = "results/agents_Agents_50_TargetX_7_TargetY_7"
+    file = "result_1/_Agents_50_TargetX_7_TargetY_7"
     sizeX = 15
     sizeY = 15
 

@@ -6,6 +6,11 @@ from parameters.STD14 import *
 import numpy as np
 import math
 import time
+import os
+
+
+def count_files_in_dir(directory):
+    return len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
 
 
 def moving(agents, generation, target, pop, sizeX, sizeY):
@@ -39,12 +44,12 @@ def moving(agents, generation, target, pop, sizeX, sizeY):
             color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 235]) / 255.0  # 创建一个稍大的2D数组，颜色值为蓝色的RGB
 
             # 将目标周围的一圈（9个格子）设为红色
-            for dx in range(-5, 6):
-                for dy in range(-5, 6):
+            for dx in range(-4, 5):
+                for dy in range(-4, 5):
                     dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
                     if dist < 2:
                         color_grid[y + dy, x + dx] = np.array([222, 71, 71]) / 255.0  # 浅红色
-                    elif dist < 5:
+                    elif dist < 4:
                         color_grid[y + dy, x + dx] = np.array([255, 165, 100]) / 255.0  # 浅橘色
 
             plt.clf()  # 清除当前的figure
@@ -100,14 +105,17 @@ def moving(agents, generation, target, pop, sizeX, sizeY):
 
 
 if __name__ == "__main__":
+    directory = "moving/"
+    file_num = count_files_in_dir(directory)
+
     agent_p = [[[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for i in range(MAX_TIME + 1)] for _ in
-               range(2)]
+               range(int(5))]
     total_gen, total_target, total_pop = [], [], []
 
-    for gen in range(2):
+    for gen in range(int(5)):
         para = False
         generation = None
-        filename = "moving/Agents_" + str(NUM_AGENTS) + "_TimeStep_" + str(MAX_TIME) + "_Gen_" + str(gen)
+        filename = directory + "Agents_" + str(NUM_AGENTS) + "_TimeStep_" + str(MAX_TIME) + "_Gen_" + str(gen)
 
         with open(filename, 'r') as f:
             line_count = 0
