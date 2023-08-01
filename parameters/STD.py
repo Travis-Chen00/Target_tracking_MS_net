@@ -3,7 +3,7 @@ MUTATION = 0.05  # 0.1 - mutation rate
 DYNAMIC_MUTATE = 0.1    # Dynamic mutation
 CATASTROPHE = 0.1       # Catastrophe rate
 
-POP_SIZE = 350  # population
+POP_SIZE = 500  # population
 
 MAX_TIME = 10  # time per run
 MAX_GENS = 100  # maximum generations

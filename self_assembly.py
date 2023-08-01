@@ -206,26 +206,26 @@ class SelfAssembly:
 
                 elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == HIGH and \
                         self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
-                    self.fit -= 3  # 高温区
+                    self.fit -= 5  # 高温区
 
                 elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
                     if distance < 0:
                         self.fit += 6
                     else:
-                        self.fit -= 2
+                        self.fit -= 1
 
                 elif self.heatmap[self.p[i].coord.x][self.p[i].coord.y] == MEDIUM:
-                    if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] != HIGH:
+                    if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
                         if distance < 0:
                             self.fit += 4  # 朝目标移动,且不进入高温区 / 保持在中温区
-                        elif distance == 0:
+                        elif distance >= 0:
                             self.fit += 1
 
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
                         self.fit -= 3
 
                     if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
-                        self.fit -= 2
+                        self.fit -= 1
 
                 storage_p[timeStep] = self.p_next.copy()
 
