@@ -77,23 +77,35 @@ class MinimalSurprise:
             else:
                 # Mutate network
                 for k in range(PRE_CONNECTIONS):
+                    self.prediction.weight_predictionNet_layer0[ind][k] \
+                        = self.prediction.weight_predictionNet_layer0[maxID][k]
                     if random.random() < DYNAMIC_MUTATE:  # prediction network
                         self.prediction.weight_predictionNet_layer0[ind][k] \
                             += 0.8 * random.random() - 0.4  # 0.8 * [0, 1] - 0.4 --> [-0.4, 0.4]
                 for k in range(ACT_CONNECTIONS):
+                    self.action.weight_actionNet_layer0[ind][k] \
+                        = self.action.weight_actionNet_layer0[maxID][k]
                     if random.random() < DYNAMIC_MUTATE:  # action network
                         self.action.weight_actionNet_layer0[ind][k] \
                             += 0.8 * random.random() - 0.4
                 for k in range((self.amountInPrediction + 1) * self.amountHiddenPrediction):
+                    self.prediction.weight_predictionNet_layer1[ind][k] \
+                        = self.prediction.weight_predictionNet_layer1[maxID][k]
                     if random.random() < DYNAMIC_MUTATE:
                         self.prediction.weight_predictionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountInAction * self.amountHiddenAction):
+                    self.action.weight_actionNet_layer1[ind][k] \
+                        = self.action.weight_actionNet_layer1[maxID][k]
                     if random.random() < DYNAMIC_MUTATE:
                         self.action.weight_actionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountHiddenAction * self.amountOutAction):
+                    self.action.weight_actionNet_layer2[ind][k] \
+                        = self.action.weight_actionNet_layer2[maxID][k]
                     if random.random() < DYNAMIC_MUTATE:
                         self.action.weight_actionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountOutPrediction * self.amountHiddenPrediction):
+                    self.prediction.weight_predictionNet_layer2[ind][k] \
+                        = self.prediction.weight_predictionNet_layer2[maxID][k]
                     if random.random() < DYNAMIC_MUTATE:
                         self.prediction.weight_predictionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
 
