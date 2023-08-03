@@ -104,7 +104,7 @@ class Prediction:
         temp = np.argmax(net, axis=0)
 
         # print(temp)
-        self.heat_next[agent] = MEDIUM
+        self.heat_next[agent] = max(temp, MEDIUM)
 
         # def propagate_heat_network(self, layer0, layer1, layer2, layer3, agent, heat):
         #     heat = np.array(heat)[:, np.newaxis]

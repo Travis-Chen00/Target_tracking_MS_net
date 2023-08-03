@@ -385,7 +385,7 @@ class SelfAssembly:
                     fitness_count += 1
 
                 # End Fitness store
-                if fitness_count == 800:
+                if fitness_count == 500:
                     self.minimalSurprise.catastrophe(ind)
                     fitness_count = 0
 
