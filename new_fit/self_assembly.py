@@ -6,6 +6,7 @@ from utils.util import Pos, Agent
 from parameters.STD14 import *
 from minimal_surprise import MinimalSurprise
 from utils.sensors import *
+from draw import random_location
 
 
 class SelfAssembly:
@@ -47,6 +48,7 @@ class SelfAssembly:
             log: index of log file
             noagent: Number of agents
     """
+
     def execute(self, gen, ind, p_initial, maxTime, log, noagents):
         timeStep = 0  # Current timestep
 
@@ -119,22 +121,6 @@ class SelfAssembly:
 
                         if timeStep > 0 and sensors[j] == self.minimalSurprise.prediction.predictions[i][j]:
                             fit += 1  # Compare predictions and real sensor values
-
-
-                # for t in range(1, TEMP_SENSORS + 1):
-                #     if t == 1:  # FORWARD
-                #         inputA[13 + t] = self.heatmap[dx][dy]
-                #         inputT[t - 1] = self.heatmap[dx][dy]
-                #
-                #         if self.heatmap[dx][dy] == self.minimalSurprise.prediction.heat_next[i]:
-                #             fit_heat += 1
-
-                # print(self.p[i].coord.x, self.p[i].coord.y, self.p[i].heading.x, self.p[i].heading.y)
-                # print("Forward: ", dx, dy, "Forward L: ", dxl, dyl, "Backward: ", dxb, dyb, "Backward L: ", dxbl, dybl)
-                # print(self.heatmap[dx][dy], self.heatmap[dxb][dyb], self.heatmap[dxl][dyl], self.heatmap[dxbl][dybl])
-                # print("Input A: ", inputA)
-                # print("Input P: ", inputP)
-                # print("Input T: ", inputT)
 
                 # Propagate action network
                 # Input: current sensor values + last action
@@ -213,6 +199,15 @@ class SelfAssembly:
 
                 storage_p[timeStep] = self.p_next.copy()
 
+                cata_num = 0
+                for i in range(noagents):
+                    if self.p_next[i].coord.x == self.cata[i].coord.x and self.p_next[i].coord.y == self.cata[
+                        i].coord.y:
+                        cata_num += 1
+
+                if cata_num == NUM_AGENTS / 2:
+                    self.minimalSurprise.catastrophe(ind)
+
             # End Agent Iterations
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
             timeStep += 1
@@ -227,9 +222,7 @@ class SelfAssembly:
         upper = Net_para * float(fit) + (1 - Net_para) * float(fit_heat)
         below = float(noagents * maxTime * ((1 - Net_para) * TEMP_SENSORS + (Net_para * SENSORS)))
         fit_return = upper / below
-
         print("Prediction net: ", upper, "Heat net: ", below)
-        # fit_return = float(self.fit) / float(noagents * maxTime)
         self.fit = 0  # Reset
 
         if self.tmp_fit <= fit_return:
@@ -259,6 +252,7 @@ class SelfAssembly:
     """
         Usage: Do evolution
     """
+
     def evolution(self):
         print("Evolution count: ", self.count)
 
@@ -372,7 +366,6 @@ class SelfAssembly:
                     maxID = ind
                     # store initial and final agent positions
                     for i in range(NUM_AGENTS):
-
                         agent_maxfit[i].coord.x = tmp_agent_maxfit_final[i].coord.x
                         agent_maxfit[i].coord.y = tmp_agent_maxfit_final[i].coord.y
                         agent_maxfit[i].heading.x = tmp_agent_maxfit_final[i].heading.x
@@ -385,7 +378,7 @@ class SelfAssembly:
                     fitness_count += 1
 
                 # End Fitness store
-                if fitness_count == 500:
+                if fitness_count == 800:
                     self.minimalSurprise.catastrophe(ind)
                     fitness_count = 0
 
