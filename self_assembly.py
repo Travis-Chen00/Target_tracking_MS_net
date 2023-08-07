@@ -445,7 +445,8 @@ class SelfAssembly:
                 p_initial[i].coord.x = random.randint(0, self.sizeX - 1)
                 p_initial[i].coord.y = random.randint(0, self.sizeY - 1)
 
-                if grid[p_initial[i].coord.x][p_initial[i].coord.y] == 0:
+                if grid[p_initial[i].coord.x][p_initial[i].coord.y] == 0 and \
+                        self.heatmap[p_initial[i].coord.x][p_initial[i].coord.y] == MEDIUM:
                     block = False
                     grid[p_initial[i].coord.x][p_initial[i].coord.y] = 1  # set grid cell occupied
 
