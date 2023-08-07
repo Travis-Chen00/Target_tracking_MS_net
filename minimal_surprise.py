@@ -47,8 +47,29 @@ class MinimalSurprise:
             if random.random() < CATASTROPHE:
                 self.prediction.weight_predictionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
 
-    def dynamic_mutate(self, maxID):
+    def dynamic_mutate(self, maxID, fitness, gen, ASD_prev):
         print("Doing dynamic mutate")
+
+        avg_fitness = np.sum(fitness) / POP_SIZE  # The average fitness value for generation T with all individuals.
+
+        tmp, sum_tmp = 0.0, 0.0
+        max_fit = fitness[maxID]
+        for i in range(len(fitness)):
+            tmp = np.power(fitness[i] - avg_fitness, 2)
+            sum_tmp += tmp
+        ASD_now = np.sqrt(sum_tmp) / POP_SIZE
+
+        print("Average_Fitness for Generation ", gen, ": ", ASD_now,
+              "Average_Fitness for Generation ", gen - 1, ": ", ASD_prev)
+
+        if gen == 0:
+            d_mutation = MUTATION
+        else:
+            d_mutation = MUTATION * (1 + (max_fit - ASD_prev) / (max_fit + ASD_prev))
+
+        print("Mutation rate for Generation ", gen, ": ", MUTATION,
+              "d_mutation for Generation ", gen - 1, ": ", d_mutation)
+
         # Select and mutate
         for ind in range(POP_SIZE):
             # individuals out of the maximum
@@ -77,25 +98,27 @@ class MinimalSurprise:
             else:
                 # Mutate network
                 for k in range(PRE_CONNECTIONS):
-                    if random.random() < DYNAMIC_MUTATE:  # prediction network
+                    if random.random() < d_mutation:  # prediction network
                         self.prediction.weight_predictionNet_layer0[ind][k] \
                             += 0.8 * random.random() - 0.4  # 0.8 * [0, 1] - 0.4 --> [-0.4, 0.4]
                 for k in range(ACT_CONNECTIONS):
-                    if random.random() < DYNAMIC_MUTATE:  # action network
+                    if random.random() < d_mutation:  # action network
                         self.action.weight_actionNet_layer0[ind][k] \
                             += 0.8 * random.random() - 0.4
                 for k in range((self.amountInPrediction + 1) * self.amountHiddenPrediction):
-                    if random.random() < DYNAMIC_MUTATE:
+                    if random.random() < d_mutation:
                         self.prediction.weight_predictionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountInAction * self.amountHiddenAction):
-                    if random.random() < DYNAMIC_MUTATE:
+                    if random.random() < d_mutation:
                         self.action.weight_actionNet_layer1[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountHiddenAction * self.amountOutAction):
-                    if random.random() < DYNAMIC_MUTATE:
+                    if random.random() < d_mutation:
                         self.action.weight_actionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
                 for k in range(self.amountOutPrediction * self.amountHiddenPrediction):
-                    if random.random() < DYNAMIC_MUTATE:
+                    if random.random() < d_mutation:
                         self.prediction.weight_predictionNet_layer2[ind][k] += 0.8 * random.random() - 0.4
+
+        return ASD_now
 
     def select_mutate(self, maxID, fitness):
         sum1 = 0.0

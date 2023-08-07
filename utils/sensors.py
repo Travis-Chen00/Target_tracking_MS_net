@@ -95,7 +95,7 @@ class Sensors:
     #   7    X   6
     #   10   8   9
     #   13   11  12
-    def sensorModelSTDL(self, i, grid, p):
+    def sensorModelSTDL(self, i, grid, intensity, p):
         """
             Usage: sensor model with 14 sensors surrounding the agent
             :param i: index of current agent
@@ -109,9 +109,9 @@ class Sensors:
         dx = int(self.adjustXPosition(p[i].coord.x + p[i].heading.x))       # -x OR x
         dy = int(self.adjustYPosition(p[i].coord.y + p[i].heading.y))       # -y OR y
 
-        # long range forward
-        dxl = int(self.adjustXPosition(p[i].coord.x + 2 * p[i].heading.x))  # -2 / 2 * x
-        dyl = int(self.adjustYPosition(p[i].coord.y + 2 * p[i].heading.y))  # -2 / 2 * Y
+        # # long range forward
+        # dxl = int(self.adjustXPosition(p[i].coord.x + 2 * p[i].heading.x))  # -2 / 2 * x
+        # dyl = int(self.adjustYPosition(p[i].coord.y + 2 * p[i].heading.y))  # -2 / 2 * Y
 
         # points for left and right sensors
         dyplus = int(self.adjustYPosition(p[i].coord.y + 1))    # RIGHT
@@ -123,62 +123,30 @@ class Sensors:
         dxb = int(self.adjustXPosition(p[i].coord.x - p[i].heading.x))
         dyb = int(self.adjustYPosition(p[i].coord.y - p[i].heading.y))
 
-        # long range backwards
-        dxbl = int(self.adjustXPosition(p[i].coord.x - 2 * p[i].heading.x))
-        dybl = int(self.adjustYPosition(p[i].coord.y - 2 * p[i].heading.y))
+        # # long range backwards
+        # dxbl = int(self.adjustXPosition(p[i].coord.x - 2 * p[i].heading.x))
+        # dybl = int(self.adjustYPosition(p[i].coord.y - 2 * p[i].heading.y))
 
-        sensors[S0] = grid[dx][dy]          # FORWARD SHORT
-        sensors[S3] = grid[dxl][dyl]        # FORWARD LONG
-        sensors[S8] = grid[dxb][dyb]        # BACKWARD SHORT
-        sensors[S11] = grid[dxbl][dybl]     # BACKWARD LONG
-        sensors[S_T] = grid[dx][dy]         # Temperature sensor FORWARD
+        sensors[S0] = intensity[p[i].coord.x][p[i].heading.x]          # FORWARD SHORT
+        sensors[S1] = intensity[dx][dy]        # BACKWARD SHORT
+        sensors[S2] = intensity[dxb][dyb]  # BACKWARD SHORT
+
+        sensors[S5] = grid[dx][dy]             # 1 Forward proximity sensor
 
         if p[i].heading.y == 0:
             if p[i].heading.x == 1:     # Toward North
-                sensors[S2] = grid[dx][dyplus]
-                sensors[S1] = grid[dx][dymin]
-                sensors[S5] = grid[dxl][dyplus]
-                sensors[S4] = grid[dxl][dymin]
-                sensors[S7] = grid[int(p[i].coord.x)][dyplus]
-                sensors[S6] = grid[int(p[i].coord.x)][dymin]
-                sensors[S10] = grid[dxb][dyplus]
-                sensors[S9] = grid[dxb][dymin]
-                sensors[S13] = grid[dxbl][dyplus]
-                sensors[S12] = grid[dxbl][dymin]
+                sensors[S3] = intensity[int(p[i].coord.x)][dyplus]
+                sensors[S4] = intensity[int(p[i].coord.x)][dymin]
             else:                       # Toward South
-                sensors[S1] = grid[dx][dyplus]
-                sensors[S2] = grid[dx][dymin]
-                sensors[S4] = grid[dxl][dyplus]
-                sensors[S5] = grid[dxl][dymin]
-                sensors[S6] = grid[int(p[i].coord.x)][dyplus]
-                sensors[S7] = grid[int(p[i].coord.x)][dymin]
-                sensors[S9] = grid[dxb][dyplus]
-                sensors[S10] = grid[dxb][dymin]
-                sensors[S12] = grid[dxbl][dyplus]
-                sensors[S13] = grid[dxbl][dymin]
+                sensors[S4] = intensity[int(p[i].coord.x)][dyplus]
+                sensors[S3] = intensity[int(p[i].coord.x)][dymin]
         elif p[i].heading.x == 0:
             if p[i].heading.y == 1:     # Toward East
-                sensors[S1] = grid[dxplus][dy]
-                sensors[S4] = grid[dxplus][dyl]
-                sensors[S2] = grid[dxmin][dy]
-                sensors[S5] = grid[dxmin][dyl]
-                sensors[S6] = grid[dxplus][int(p[i].coord.y)]
-                sensors[S7] = grid[dxmin][int(p[i].coord.y)]
-                sensors[S10] = grid[dxmin][dyb]
-                sensors[S9] = grid[dxplus][dyb]
-                sensors[S13] = grid[dxmin][dybl]
-                sensors[S12] = grid[dxplus][dybl]
+                sensors[S4] = intensity[dxplus][int(p[i].coord.y)]
+                sensors[S3] = intensity[dxmin][int(p[i].coord.y)]
             else:                       # Toward West
-                sensors[S2] = grid[dxplus][dy]
-                sensors[S5] = grid[dxplus][dyl]
-                sensors[S1] = grid[dxmin][dy]
-                sensors[S4] = grid[dxmin][dyl]
-                sensors[S7] = grid[dxplus][int(p[i].coord.y)]
-                sensors[S6] = grid[dxmin][int(p[i].coord.y)]
-                sensors[S9] = grid[dxmin][dyb]
-                sensors[S10] = grid[dxplus][dyb]
-                sensors[S12] = grid[dxmin][dybl]
-                sensors[S13] = grid[dxplus][dybl]
+                sensors[S3] = intensity[dxplus][int(p[i].coord.y)]
+                sensors[S4] = intensity[dxmin][int(p[i].coord.y)]
 
         return sensors
 
@@ -207,8 +175,8 @@ class Sensors:
         dyb = self.adjustYPosition(p[i].coord.y - p[i].heading.y)
 
         # forward looking sensor --> in direction of heading
-        sensors[S0] = grid[dx][dy]      # Forward short
-        sensors[S5] = grid[dxb][dyb]    # Backward short
+        sensors[S0] = hj[dx][dy]      # Forward short
+        sensors[S_b] = grid[dxb][dyb]    # Backward short
 
         if p[i].heading.y == 0:
             if p[i].heading.x == 1:
