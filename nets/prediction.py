@@ -17,7 +17,7 @@ class Prediction:
         self.hiddenBefore_predictionNet = np.zeros((NUM_AGENTS, hidden), dtype=float)
 
         # predictions of agents FOR Proximity sensors
-        self.predictions = np.zeros((NUM_AGENTS, SENSORS - 1), dtype=int)
+        self.predictions = np.zeros((NUM_AGENTS, SENSORS - 1), dtype=float)
 
         self.heat_next = np.zeros(NUM_AGENTS, dtype=int)
 
@@ -34,7 +34,7 @@ class Prediction:
                     net[i] = 0
         return net
 
-    def propagate_prediction_network(self, layer0, layer1, layer2, agent, input):
+    def propagate_prediction_network(self, layer0, layer1, layer2, agent, input, zone):
         """
             Propagation of the action network
             Usage:
@@ -68,4 +68,14 @@ class Prediction:
         net = self.sigmoid(tmp)
 
         for j in range(SENSORS - 1):
-            self.predictions[agent][j] = net[j]
+            # print("Before: ", zone, self.predictions[agent][j])
+            if zone == MEDIUM:
+                result = Heat_int[MEDIUM] * Heat_alpha[MEDIUM]
+                self.predictions[agent][j] = float(result)
+            elif zone == LOW:
+                result = Heat_int[LOW] * Heat_alpha[LOW]
+                self.predictions[agent][j] = float(result)
+            elif zone == HIGH:
+                result = Heat_int[MEDIUM] * Heat_alpha[MEDIUM]
+                self.predictions[agent][j] = float(result)
+            # print("After: ", zone, self.predictions[agent][j])

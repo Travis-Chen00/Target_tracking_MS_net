@@ -18,5 +18,7 @@ PRE_CONNECTIONS = 78   # maximum connections
 SENSORS = 6    # 14 agent sensors
 
 Heat_alpha = [0.2, 0.7, 0.1]    # Heat rate for different zones
+Heat_int = [0.54, 0.75, 0.87]
+
 
 SENSOR_MODEL = STDL

@@ -66,7 +66,7 @@ class SelfAssembly:
 
         moving = f"Agents_{NUM_AGENTS}_TimeStep_{maxTime}_Gen_{gen}"
         # file names
-        directory = "moving/New_Intensity_5_Tsensors_Psensor"
+        directory = "moving/MS_new"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -137,7 +137,8 @@ class SelfAssembly:
                     self.minimalSurprise.prediction.propagate_prediction_network(
                         self.minimalSurprise.prediction.weight_predictionNet_layer0[ind],
                         self.minimalSurprise.prediction.weight_predictionNet_layer1[ind],
-                        self.minimalSurprise.prediction.weight_predictionNet_layer2[ind], i, inputP)
+                        self.minimalSurprise.prediction.weight_predictionNet_layer2[ind], i, inputP,
+                        self.p[i].inspire)
 
                 # Check next action
                 # 0 == move straight; 1 == turn
@@ -160,38 +161,44 @@ class SelfAssembly:
                         self.p_next[i].coord.y = tmp_agent_next.y
                         self.p_next[i].heading.x = self.p[i].heading.x
                         self.p_next[i].heading.y = self.p[i].heading.y
+                        self.p_next[i].inspire = self.p[i].inspire
 
                     else:
                         # print("Can't move")
                         self.p_next[i].coord.x = self.p[i].coord.x
                         self.p_next[i].coord.y = self.p[i].coord.y
-                        self.p_next[i].heading.x = self.p[i].heading.x
-                        self.p_next[i].heading.y = self.p[i].heading.y
+
+                        angle = np.arctan2(self.p[i].heading.y, self.p[i].heading.x)
+                        self.p_next[i].heading.x = round(np.cos(angle + action_output[1] * (PI / 2)))
+                        self.p_next[i].heading.y = round(np.sin(angle + action_output[1] * (PI / 2)))
+                        
+                        self.p_next[i].inspire = self.p[i].inspire
 
                 # agent Turn --> Update heading
                 elif self.minimalSurprise.action.current_action[i][timeStep] == TURN:
                     # Keep same coordinate
                     self.p_next[i].coord.x = self.p[i].coord.x
                     self.p_next[i].coord.y = self.p[i].coord.y
+                    self.p_next[i].inspire = self.p[i].inspire
 
                     # calculate current orientation
                     angle = np.arctan2(self.p[i].heading.y, self.p[i].heading.x)
                     self.p_next[i].heading.x = round(np.cos(angle + action_output[1] * (PI / 2)))
                     self.p_next[i].heading.y = round(np.sin(angle + action_output[1] * (PI / 2)))
 
-                if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
-                    alpha_rate = 0.8
-                elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
-                    alpha_rate = 0.3
-                elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
-                    alpha_rate = 0.9
+                # if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
+                #     alpha_rate = 0.8
+                # elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
+                #     alpha_rate = 0.3
+                # elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
+                #     alpha_rate = 0.9
 
                 storage_p[timeStep] = self.p_next.copy()
 
                 sensor_fit = float(diff) / float(SENSORS - 1)
-                dist = self.heat_intensity[self.p[i].coord.x][self.p[i].coord.y]
-                fit_individual = alpha_rate * dist + (1 - alpha_rate) * sensor_fit
-                total_fit.append(fit_individual)
+                # dist = self.heat_intensity[self.p[i].coord.x][self.p[i].coord.y]
+                # fit_individual = alpha_rate * dist + (1 - alpha_rate) * sensor_fit
+                total_fit.append(sensor_fit)
 
             # End Agent Iterations
 
@@ -218,6 +225,8 @@ class SelfAssembly:
 
         # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
         sum_num = sum(total_fit)
+
+        # Length = 100, MAX_TIME = 10, noagents = 10
         fit_return = sum_num / float(len(total_fit) * MAX_TIME * noagents)
 
         if self.tmp_fit <= fit_return:
@@ -259,7 +268,7 @@ class SelfAssembly:
         temp_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         tmp_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         # file names
-        directory = "results/New_Intensity_5_Tsensors_Psensor"
+        directory = "results/MS_new"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -304,7 +313,7 @@ class SelfAssembly:
         # 50 Agents * 10 times repetitions ==> 500 individuals
         # Total: 50 * 10 * 100 ==> 50000 generations
         for gen in range(MAX_GENS):
-            max = 0.0
+            max_gen = 0.0
             avg = 0.0
             maxID = -1
             fitness_count = 0
@@ -314,7 +323,7 @@ class SelfAssembly:
                 temp_p[i].coord.y = p_initial[i].coord.y
                 temp_p[i].heading.x = p_initial[i].heading.x
                 temp_p[i].heading.y = p_initial[i].heading.y
-                temp_p[i].type = p_initial[i].type
+                temp_p[i].inspire = p_initial[i].inspire
             # temp_p = p_initial.copy()
             # population level (iterate through individuals)
             # POP_SIZE = 50
@@ -342,14 +351,14 @@ class SelfAssembly:
                         tmp_agent_maxfit_final[i].coord.y = max_p[i].coord.y
                         tmp_agent_maxfit_final[i].heading.x = max_p[i].heading.x
                         tmp_agent_maxfit_final[i].heading.y = max_p[i].heading.y
-                        tmp_agent_maxfit_final[i].type = max_p[i].type
+                        tmp_agent_maxfit_final[i].inspire = max_p[i].inspire
 
                 # Average fitness of generation
                 avg += fitness[ind]
 
                 # store individual with maximum fitness
-                if fitness[ind] > max:
-                    max = fitness[ind]
+                if fitness[ind] > max_gen:
+                    max_gen = fitness[ind]
                     maxID = ind
                     # store initial and final agent positions
                     for i in range(NUM_AGENTS):
@@ -357,7 +366,7 @@ class SelfAssembly:
                         agent_maxfit[i].coord.y = tmp_agent_maxfit_final[i].coord.y
                         agent_maxfit[i].heading.x = tmp_agent_maxfit_final[i].heading.x
                         agent_maxfit[i].heading.y = tmp_agent_maxfit_final[i].heading.y
-                        agent_maxfit[i].type = tmp_agent_maxfit_final[i].type
+                        agent_maxfit[i].inspire = tmp_agent_maxfit_final[i].inspire
                     # agent_maxfit = tmp_agent_maxfit_final.copy()
 
                     tmp_initial = agent_maxfit.copy()
@@ -369,24 +378,25 @@ class SelfAssembly:
                     self.minimalSurprise.catastrophe(ind)
                     fitness_count = 0
 
-                print("Score for generation: ", gen + 1, "Pop: ", ind, "Score: ", max)
+                print("Score for generation: ", gen + 1, "Pop: ", ind, "Score: ", max_gen)
 
             # End population loop
 
             p_initial = tmp_initial.copy()  # Update Initial pos
             self.cata = tmp_initial.copy()
 
-            print(f"#{gen} {max} ({maxID})")
+            print(f"#{gen} {max_gen} ({maxID})")
             with open(agent_file, "a") as f:
                 f.write(f"Gen: {gen}\n")
                 f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
-                f.write(f"Fitness: {max}\n")
+                f.write(f"Fitness: {max_gen}\n")
                 f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
                 for i in range(NUM_AGENTS):
                     f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
                     f.write(f"{temp_p[i].coord.x}, {temp_p[i].coord.y}, ")
                     f.write(f"{agent_maxfit[i].heading.x}, {agent_maxfit[i].heading.y}, ")
                     f.write(f"{temp_p[i].heading.x}, {temp_p[i].heading.y}, ")
+                    f.write(f"{temp_p[i].inspire}, ")
                     f.write("\n")
                 f.write("\n")
 
@@ -432,7 +442,6 @@ class SelfAssembly:
                     self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
 
         self.update_heat_intensity()
-
         # generate agent positions
         # In each repeat, all agent will be initialized
         for i in range(NUM_AGENTS):
@@ -446,8 +455,9 @@ class SelfAssembly:
                 p_initial[i].coord.y = random.randint(0, self.sizeY - 1)
 
                 if grid[p_initial[i].coord.x][p_initial[i].coord.y] == 0 and \
-                        self.heatmap[p_initial[i].coord.x][p_initial[i].coord.y] == MEDIUM:
+                        self.heatmap[p_initial[i].coord.x][p_initial[i].coord.y] == LOW:
                     block = False
+                    p_initial[i].inspire = MEDIUM
                     grid[p_initial[i].coord.x][p_initial[i].coord.y] = 1  # set grid cell occupied
 
                 # Set agent heading values randomly (north, south, west, east)
@@ -487,23 +497,23 @@ class SelfAssembly:
         self.target[1] = tmp_Y
 
     def update_heat_intensity(self):
-        alpha_rate = 0
-        distance = 0
+        alpha_rate = 0.0
+        upper = 0.0
         for dx in range(self.sizeX):
             for dy in range(self.sizeY):
-                loc_original = np.array([dx, dy])
-                distance = np.linalg.norm(np.array(self.target) - loc_original)
-
                 if self.heatmap[dx][dy] == HIGH:
                     alpha_rate = Heat_alpha[HIGH]
+                    upper = np.abs(self.sizeX - 1) * np.abs(self.sizeY - 1)
                 elif self.heatmap[dx][dy] == MEDIUM:
                     alpha_rate = Heat_alpha[MEDIUM]
+                    upper = np.abs(self.sizeX - 2) * np.abs(self.sizeY - 2)
                 elif self.heatmap[dx][dy] == LOW:
                     alpha_rate = Heat_alpha[LOW]
+                    upper = np.abs(self.sizeX - 4) * np.abs(self.sizeY - 4)
 
-                upper = np.abs(self.sizeX - distance) * np.abs(self.sizeY - distance)
                 lower = self.sizeX * self.sizeY
                 self.heat_intensity[dx][dy] = alpha_rate * upper / lower
+                # print(dx, dy, self.heat_intensity[dx][dy])
 
     def update_heatmap(self, agent):
         self.heatmap[self.target[0]][self.target[1]] = HIGH  # Change old Pos to HIGH zone

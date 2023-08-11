@@ -1,10 +1,10 @@
 # experimental setup
-MUTATION = 0.2  # 0.1 - mutation rate
-CATASTROPHE = 0.4     # Catastrophe rate
+MUTATION = 0.2          # 0.1 - mutation rate
+CATASTROPHE = 0.4       # Catastrophe rate
 
 POP_SIZE = 5000  # population
 
-MAX_TIME = 20   # time per run
+MAX_TIME = 10   # time per run
 MAX_GENS = 100  # maximum generations
 
 NUM_AGENTS = 10
@@ -26,13 +26,6 @@ S3 = 3  # 2 cells forward
 S4 = 4  # 2 cells forward right
 S5 = 5  # 2 cells forward left
 S6 = 6  # right of agent
-# S7 = 7  # left of agent
-# S8 = 8  # backward
-# S9 = 9  # backward right
-# S10 = 10  # backward left
-# S11 = 11  # 2 cells backward
-# S12 = 12  # 2 cells backward right
-# S13 = 13  # 2 cells backward left
 
 # S_t = 0
 # S_f = 1

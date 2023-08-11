@@ -121,18 +121,18 @@ class MinimalSurprise:
         return ASD_now
 
     def select_mutate(self, maxID, fitness):
-        sum1 = 0.0
-        sum2 = 0.0
-        pr = np.zeros(POP_SIZE, dtype=float)
-
-        # Total fitness value
-        for i in range(POP_SIZE):
-            sum1 += fitness[i]
-
-        # relative fitness over individuals
-        for i in range(POP_SIZE):
-            sum2 += fitness[i]
-            pr[i] = sum2 / sum1
+        # sum1 = 0.0
+        # sum2 = 0.0
+        # pr = np.zeros(POP_SIZE, dtype=float)
+        #
+        # # Total fitness value
+        # for i in range(POP_SIZE):
+        #     sum1 += fitness[i]
+        #
+        # # relative fitness over individuals
+        # for i in range(POP_SIZE):
+        #     sum2 += fitness[i]
+        #     pr[i] = sum2 / sum1
 
         # Select and mutate
         for ind in range(POP_SIZE):

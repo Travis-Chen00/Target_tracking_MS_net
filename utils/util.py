@@ -7,7 +7,7 @@ class Pos:
 
 # agent data
 class Agent:
-    def __init__(self, type, coord, heading):
-        self.type = type
+    def __init__(self, inspire, coord, heading):
+        self.inspire = inspire
         self.coord = coord
         self.heading = heading
