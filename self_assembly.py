@@ -23,7 +23,7 @@ class SelfAssembly:
         self.heat_intensity = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
 
         # Set the coordinates of target / embedded into swarms
-        self.target = [int(self.sizeX) // 2, int(self.sizeY) // 2]
+        self.target = [[0, 0] for _ in range(AIM_NUM)]
 
         # Evolution count
         self.count = 0
@@ -66,7 +66,7 @@ class SelfAssembly:
 
         moving = f"Agents_{NUM_AGENTS}_TimeStep_{maxTime}_Gen_{gen}"
         # file names
-        directory = "moving/MS_new"
+        directory = "moving/8_12/50_Agents_all_pos"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -86,7 +86,8 @@ class SelfAssembly:
             for i in range(noagents):
                 grid[int(self.p[i].coord.x)][int(self.p[i].coord.y)] = 1
 
-            grid[self.target[0]][self.target[1]] = 1  # Set target location
+            for t in range(AIM_NUM):
+                grid[self.target[t][0]][self.target[t][1]] = 1  # Set target location
 
             # Iterate all agents
             # Execute agents one by one in each timeStep
@@ -171,7 +172,7 @@ class SelfAssembly:
                         angle = np.arctan2(self.p[i].heading.y, self.p[i].heading.x)
                         self.p_next[i].heading.x = round(np.cos(angle + action_output[1] * (PI / 2)))
                         self.p_next[i].heading.y = round(np.sin(angle + action_output[1] * (PI / 2)))
-                        
+
                         self.p_next[i].inspire = self.p[i].inspire
 
                 # agent Turn --> Update heading
@@ -198,6 +199,7 @@ class SelfAssembly:
                 sensor_fit = float(diff) / float(SENSORS - 1)
                 # dist = self.heat_intensity[self.p[i].coord.x][self.p[i].coord.y]
                 # fit_individual = alpha_rate * dist + (1 - alpha_rate) * sensor_fit
+
                 total_fit.append(sensor_fit)
 
             # End Agent Iterations
@@ -235,7 +237,10 @@ class SelfAssembly:
             f = open(moving_file, "w")
             f.write(f"Gen: {gen} \n")
             f.write(f"Pop: {ind} \n")
-            f.write(f"Target: {self.target[0]}, {self.target[1]} \n")
+
+            for t in range(AIM_NUM):
+                f.write(f"Target {t}: {self.target[t][0]}, {self.target[t][1]} \n")
+
             f.write(f"Fitness: {self.tmp_fit} \n")
             f.write(f"\n")
 
@@ -267,12 +272,13 @@ class SelfAssembly:
         tmp_agent_maxfit_final = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         temp_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         tmp_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
+
         # file names
-        directory = "results/MS_new"
+        directory = "results/(One_Target_Medium)"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        file = f"_Agents_{NUM_AGENTS}_TargetX_{self.target[0]}_TargetY_{self.target[1]}"
+        file = f"_Agents_{NUM_AGENTS}"
 
         agent_file = os.path.join(directory, file)
 
@@ -306,7 +312,7 @@ class SelfAssembly:
         p_initial = self.location_init()
         # random_location(p_initial, p_initial, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
 
-        asd_prev = 0
+        # asd_prev = 0
 
         # evolutionary runs
         # For one generation:
@@ -367,6 +373,7 @@ class SelfAssembly:
                         agent_maxfit[i].heading.x = tmp_agent_maxfit_final[i].heading.x
                         agent_maxfit[i].heading.y = tmp_agent_maxfit_final[i].heading.y
                         agent_maxfit[i].inspire = tmp_agent_maxfit_final[i].inspire
+
                     # agent_maxfit = tmp_agent_maxfit_final.copy()
 
                     tmp_initial = agent_maxfit.copy()
@@ -390,7 +397,7 @@ class SelfAssembly:
                 f.write(f"Gen: {gen}\n")
                 f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
                 f.write(f"Fitness: {max_gen}\n")
-                f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
+                # f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
                 for i in range(NUM_AGENTS):
                     f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
                     f.write(f"{temp_p[i].coord.x}, {temp_p[i].coord.y}, ")
@@ -417,152 +424,176 @@ class SelfAssembly:
 
         self.execute(gen, ind, p_initial, MAX_TIME, 1, NUM_AGENTS)
 
+    def target_init(self):
+        grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
+        for i in range(AIM_NUM):
+            block = True
+            while block:
+                temp_x = random.randint(4, 11)
+                temp_y = random.randint(4, 11)
+
+                # Check if this spot is already occupied
+                if grid[temp_x][temp_y] == 1:
+                    continue
+
+                valid_position = True
+
+                # Check the distance with all previous targets
+                for j in range(i):
+                    target_dis = np.linalg.norm(
+                        np.array([self.target[j][0], self.target[j][1]]) - np.array([temp_x, temp_y]))
+                    if target_dis <= 3:
+                        valid_position = False
+                        break
+
+                # If the position is valid, break the loop and finalize the position of this target
+                if valid_position:
+                    block = False
+                    self.target[i][0] = temp_x
+                    self.target[i][1] = temp_y
+                    grid[temp_x][temp_y] = 1  # set grid cell occupied
+
     def location_init(self):
+        self.target_init()
         p_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
 
-        # initialisation of starting positions
-        # (all genomes have same set of starting positions)
-        grid[self.target[0]][self.target[1]] = 1  # Set target location
-        self.heatmap[self.target[0]][self.target[1]] = AIM
-
-        # All heatmap is low
+        # Set entire heatmap to LOW
         self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
 
-        # Set target
-        for dx in range(-4, 5):
-            for dy in range(-4, 5):
-                # Calculate the distance
-                dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+        # Set target locations and nearby heat values
+        for t in range(AIM_NUM):
+            target_x, target_y = self.target[t]
+            self.heatmap[target_x][target_y] = AIM
 
-                if dist < 2:  # High
-                    self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
-                    grid[self.target[0] + dx][self.target[1] + dy] = 1  # Set positions unavailable
-                elif dist < 4:  # Medium
-                    self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
+            for dx in range(-4, 5):
+                for dy in range(-4, 5):
+                    x, y = target_x + dx, target_y + dy
 
-        self.update_heat_intensity()
+                    # Ensure (x, y) is within bounds
+                    if 0 <= x < self.sizeX and 0 <= y < self.sizeY:
+                        dist = max(np.abs(dx), np.abs(dy))
+
+                        if dist < 2:  # High intensity
+                            self.heatmap[x][y] = max(self.heatmap[x][y], HIGH)
+                            grid[x][y] = 1  # Mark the position as occupied
+                        elif dist < 4:  # Medium intensity
+                            self.heatmap[x][y] = max(self.heatmap[x][y], MEDIUM)
+
+        self.update_heat_intensity(self.target)
+
         # generate agent positions
-        # In each repeat, all agent will be initialized
         for i in range(NUM_AGENTS):
-            # initialisation of starting positions
-            block = True
+            # Find an unoccupied and low intensity location
+            while True:
+                x = random.randint(0, self.sizeX - 1)
+                y = random.randint(0, self.sizeY - 1)
 
-            # Find an unoccupied location
-            while block:
-                # Randomise a position for each agent
-                p_initial[i].coord.x = random.randint(0, self.sizeX - 1)
-                p_initial[i].coord.y = random.randint(0, self.sizeY - 1)
-
-                if grid[p_initial[i].coord.x][p_initial[i].coord.y] == 0 and \
-                        self.heatmap[p_initial[i].coord.x][p_initial[i].coord.y] == LOW:
-                    block = False
+                if grid[x][y] == 0 and self.heatmap[x][y] == LOW:
+                    p_initial[i].coord.x, p_initial[i].coord.y = x, y
                     p_initial[i].inspire = MEDIUM
-                    grid[p_initial[i].coord.x][p_initial[i].coord.y] = 1  # set grid cell occupied
+                    grid[x][y] = 1  # Mark the position as occupied
 
-                # Set agent heading values randomly (north, south, west, east)
-                directions = [1, -1]
-                randInd = random.randint(0, 1)
-                if random.random() < 0.5:  # West & East
-                    p_initial[i].heading.x = directions[randInd]
-                    p_initial[i].heading.y = 0
-                else:  # North & South
-                    p_initial[i].heading.x = 0
-                    p_initial[i].heading.y = directions[randInd]
+                    # Set agent heading randomly
+                    if random.random() < 0.5:  # West & East
+                        p_initial[i].heading.x = random.choice([-1, 1])
+                        p_initial[i].heading.y = 0
+                    else:  # North & South
+                        p_initial[i].heading.x = 0
+                        p_initial[i].heading.y = random.choice([-1, 1])
 
-        # End Location Initialisation
+                    break  # Exit the while loop when a suitable position is found
+
         return p_initial
 
-    def target_move(self, agent):
+    def target_move(self, agent, x, y):
         grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
 
         for i in range(NUM_AGENTS):
             grid[agent[i].coord.x][agent[i].coord.y] = 1  # set grid cell occupied
 
         block = True
+
         while block:
             randInd = random.randint(0, 1)
             direction = [-1, 1]
-            if random.random() < 0.5:  # West & East
-                tmp_X = self.target[0] + direction[randInd]
-                tmp_Y = self.target[1]
-            else:  # North & South
-                tmp_X = self.target[0]
-                tmp_Y = self.target[1] + direction[randInd]
 
-            if grid[tmp_X][tmp_Y] == 0 and 0 <= tmp_X <= self.sizeX and 0 <= tmp_Y <= self.sizeY:
+            if random.random() < 0.5:  # West & East
+                tmp_X = x + direction[randInd]
+                tmp_Y = y
+            else:  # North & South
+                tmp_X = x
+                tmp_Y = y + direction[randInd]
+
+            if 0 <= tmp_X < self.sizeX and 0 <= tmp_Y < self.sizeY and grid[int(tmp_X)][int(tmp_Y)] == 0:
                 block = False  # Move the target and Avoid walls
 
-        self.target[0] = tmp_X
-        self.target[1] = tmp_Y
+        return tmp_X, tmp_Y
 
-    def update_heat_intensity(self):
-        alpha_rate = 0.0
-        upper = 0.0
-        for dx in range(self.sizeX):
-            for dy in range(self.sizeY):
-                if self.heatmap[dx][dy] == HIGH:
-                    alpha_rate = Heat_alpha[HIGH]
-                    upper = np.abs(self.sizeX - 1) * np.abs(self.sizeY - 1)
-                elif self.heatmap[dx][dy] == MEDIUM:
-                    alpha_rate = Heat_alpha[MEDIUM]
-                    upper = np.abs(self.sizeX - 2) * np.abs(self.sizeY - 2)
-                elif self.heatmap[dx][dy] == LOW:
-                    alpha_rate = Heat_alpha[LOW]
-                    upper = np.abs(self.sizeX - 4) * np.abs(self.sizeY - 4)
+    def update_heat_intensity(self, targets):
+        # Initialize heat_intensity to zero
+        self.heat_intensity = [[0 for _ in range(self.sizeY)] for _ in range(self.sizeX)]
 
-                lower = self.sizeX * self.sizeY
-                self.heat_intensity[dx][dy] = alpha_rate * upper / lower
-                # print(dx, dy, self.heat_intensity[dx][dy])
+        for tgt in targets:
+            tx, ty = int(tgt[0]), int(tgt[1])
+
+            for dx in range(-4, 5):  # Assuming a radius of 4 as in the previous code
+                for dy in range(-4, 5):
+                    x, y = tx + dx, ty + dy
+
+                    # Ensure (x,y) is within bounds
+                    if 0 <= x < self.sizeX and 0 <= y < self.sizeY:
+                        dist = max(np.abs(dx), np.abs(dy))
+                        alpha_rate = 0.0
+                        upper = 0.0
+
+                        if dist < 2:
+                            intensity_level = HIGH
+                        elif dist < 4:
+                            intensity_level = MEDIUM
+                        else:
+                            intensity_level = LOW
+
+                        alpha_rate = Heat_alpha[intensity_level]
+
+                        if intensity_level == HIGH:
+                            upper = np.abs(self.sizeX - 1) * np.abs(self.sizeY - 1)
+                        elif intensity_level == MEDIUM:
+                            upper = np.abs(self.sizeX - 2) * np.abs(self.sizeY - 2)
+                        elif intensity_level == LOW:
+                            upper = np.abs(self.sizeX - 4) * np.abs(self.sizeY - 4)
+
+                        lower = self.sizeX * self.sizeY
+                        new_intensity = alpha_rate * upper / lower
+
+                        # Set the intensity to the maximum of the current value and the new computed value
+                        self.heat_intensity[x][y] = max(self.heat_intensity[x][y], new_intensity)
 
     def update_heatmap(self, agent):
-        self.heatmap[self.target[0]][self.target[1]] = HIGH  # Change old Pos to HIGH zone
-        self.target_move(agent)
-        self.heatmap[self.target[0]][self.target[1]] = AIM  # Update new aim
-
-        # All heatmap is low
+        # Clear entire heatmap to LOW
         self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
 
-        # Set target
-        hori = self.target[0] - self.sizeX
-        vertical = self.target[1] - self.sizeY
-        if np.abs(hori) >= 4 and np.abs(vertical) >= 4:
+        for t in range(AIM_NUM):
+            self.target[t][0], self.target[t][1] = self.target_move(agent, self.target[t][0], self.target[t][1])
+
+            target_x = self.target[t][0]
+            target_y = self.target[t][1]
+
+            # Set target surroundings heatmap values
             for dx in range(-4, 5):
                 for dy in range(-4, 5):
-                    # Calculate the distance
-                    dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+                    # Ensure we're within bounds
+                    if 0 <= target_x + dx < self.sizeX and 0 <= target_y + dy < self.sizeY:
+                        # Calculate distance
+                        dist = max(np.abs(dx), np.abs(dy))
 
-                    if dist < 2:  # High
-                        self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
-                    elif dist < 4:  # Medium
-                        self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
+                        # Update heatmap value based on distance
+                        if dist < 2:
+                            self.heatmap[target_x + dx][target_y + dy] = HIGH
+                        elif dist < 4:
+                            self.heatmap[target_x + dx][target_y + dy] = MEDIUM
 
-        elif np.abs(hori) < 4 and np.abs(vertical) >= 4:
-            for dx in range(-np.abs(hori), np.abs(hori) + 1):
-                for dy in range(-np.abs(hori), np.abs(hori) + 1):
-                    # Calculate the distance
-                    dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
+            # Handle the target itself
+            self.heatmap[target_x][target_y] = AIM
 
-                    if self.target[0] == 15:
-                        self.heatmap[self.target[0] - 1][self.target[1] + dy] = HIGH
-                    else:
-                        if dist < 2:  # High
-                            self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
-                        elif dist < np.abs(hori):  # Medium
-                            self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
-
-        elif np.abs(hori) >= 4 and np.abs(vertical) < 4:
-            for dx in range(-np.abs(vertical), np.abs(vertical) + 1):
-                for dy in range(-np.abs(vertical), np.abs(vertical) + 1):
-                    # Calculate the distance
-                    dist = np.abs(dx) if np.abs(dx) > np.abs(dy) else np.abs(dy)
-
-                    if self.target[1] == 15:
-                        self.heatmap[self.target[0] - 1][self.target[1] + dy] = HIGH
-                    else:
-                        if dist < 2:  # High
-                            self.heatmap[self.target[0] + dx][self.target[1] + dy] = HIGH
-                        elif dist < np.abs(hori):  # Medium
-                            self.heatmap[self.target[0] + dx][self.target[1] + dy] = MEDIUM
-
-        self.update_heat_intensity()
+        self.update_heat_intensity(self.target)

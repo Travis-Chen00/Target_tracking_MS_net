@@ -7,8 +7,8 @@ POP_SIZE = 5000  # population
 MAX_TIME = 10   # time per run
 MAX_GENS = 100  # maximum generations
 
-NUM_AGENTS = 10
-
+NUM_AGENTS = 50
+AIM_NUM = 1
 # # Threshold to determine movement
 # Threshold = 0.67
 
