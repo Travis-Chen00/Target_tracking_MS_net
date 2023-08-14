@@ -39,8 +39,8 @@ if __name__ == "__main__":
 
         # SIZE_X = float(sys.argv[2])
         # SIZE_Y = float(sys.argv[3])
-        SIZE_X = 15
-        SIZE_Y = 15
+        SIZE_X = 11
+        SIZE_Y = 11
 
         # manipulation_arg = sys.argv[5]
         manipulation_arg = "MAN"

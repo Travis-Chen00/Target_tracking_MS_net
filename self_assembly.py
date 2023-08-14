@@ -24,6 +24,7 @@ class SelfAssembly:
 
         # Set the coordinates of target / embedded into swarms
         self.target = [[0, 0] for _ in range(AIM_NUM)]
+        self.tmp_target = [[0, 0] for _ in range(AIM_NUM)]
 
         # Evolution count
         self.count = 0
@@ -66,7 +67,7 @@ class SelfAssembly:
 
         moving = f"Agents_{NUM_AGENTS}_TimeStep_{maxTime}_Gen_{gen}"
         # file names
-        directory = "moving/8_12/50_Agents_all_pos"
+        directory = "moving/8_13/test_data"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -206,17 +207,6 @@ class SelfAssembly:
 
             # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
             timeStep += 1
-
-            # cata_num = 0
-            # for i in range(noagents):
-            #     if self.p_next[i].coord.x == self.cata[i].coord.x \
-            #             and self.p_next[i].coord.y == self.cata[i].coord.y \
-            #             and self.p_next[i].heading.x == self.cata[i].heading.x \
-            #             and self.p_next[i].heading.y == self.cata[i].heading.y:
-            #         cata_num += 1
-            #
-            # if cata_num == NUM_AGENTS / 2:
-            #     self.minimalSurprise.catastrophe(ind)
 
             # Update positions
             temp = self.p_next
@@ -419,8 +409,20 @@ class SelfAssembly:
             # self.minimalSurprise.select_mutate(maxID, fitness)
 
             "Do target moving HERE"
-            self.update_heatmap(tmp_initial)
+            # if gen % 2 == 0:
+            #     if gen >= 2:
+            #         for t in range(AIM_NUM):
+            #             tmp_x, tmp_y = self.tmp_target[t][0], self.tmp_target[t][1]
+            #
+            #             self.target[t][0], self.target[t][1] = tmp_x, tmp_y
+            #
+            #             self.tmp_target[t][0], self.tmp_target[t][1] = 0, 0
+            #
+            #     self.update_heatmap(tmp_initial)
+            # else:
+            #     self.target_disappear()
             # End evolution runs loop
+            self.update_heatmap(tmp_initial)
 
         self.execute(gen, ind, p_initial, MAX_TIME, 1, NUM_AGENTS)
 
@@ -429,8 +431,8 @@ class SelfAssembly:
         for i in range(AIM_NUM):
             block = True
             while block:
-                temp_x = random.randint(4, 11)
-                temp_y = random.randint(4, 11)
+                temp_x = random.randint(5, 6)
+                temp_y = random.randint(5, 6)
 
                 # Check if this spot is already occupied
                 if grid[temp_x][temp_y] == 1:
@@ -466,18 +468,18 @@ class SelfAssembly:
             target_x, target_y = self.target[t]
             self.heatmap[target_x][target_y] = AIM
 
-            for dx in range(-4, 5):
-                for dy in range(-4, 5):
+            for dx in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
+                for dy in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
                     x, y = target_x + dx, target_y + dy
 
                     # Ensure (x, y) is within bounds
                     if 0 <= x < self.sizeX and 0 <= y < self.sizeY:
                         dist = max(np.abs(dx), np.abs(dy))
 
-                        if dist < 2:  # High intensity
+                        if dist < 1 + TARGET_SIZE:  # High intensity
                             self.heatmap[x][y] = max(self.heatmap[x][y], HIGH)
                             grid[x][y] = 1  # Mark the position as occupied
-                        elif dist < 4:  # Medium intensity
+                        elif dist < 3 + TARGET_SIZE:  # Medium intensity
                             self.heatmap[x][y] = max(self.heatmap[x][y], MEDIUM)
 
         self.update_heat_intensity(self.target)
@@ -530,6 +532,15 @@ class SelfAssembly:
 
         return tmp_X, tmp_Y
 
+    def target_disappear(self):
+        for t in range(AIM_NUM):
+            tmp_x, tmp_y = self.target[t][0], self.target[t][1]
+            self.tmp_target[t][0], self.tmp_target[t][1] = tmp_x, tmp_y
+            self.target[t][0], self.target[t][1] = -1, -1
+
+        self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
+        self.update_heat_intensity(self.target)
+
     def update_heat_intensity(self, targets):
         # Initialize heat_intensity to zero
         self.heat_intensity = [[0 for _ in range(self.sizeY)] for _ in range(self.sizeX)]
@@ -537,8 +548,8 @@ class SelfAssembly:
         for tgt in targets:
             tx, ty = int(tgt[0]), int(tgt[1])
 
-            for dx in range(-4, 5):  # Assuming a radius of 4 as in the previous code
-                for dy in range(-4, 5):
+            for dx in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):  # Assuming a radius of 4 as in the previous code
+                for dy in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
                     x, y = tx + dx, ty + dy
 
                     # Ensure (x,y) is within bounds
@@ -547,9 +558,9 @@ class SelfAssembly:
                         alpha_rate = 0.0
                         upper = 0.0
 
-                        if dist < 2:
+                        if dist < 1 + TARGET_SIZE:
                             intensity_level = HIGH
-                        elif dist < 4:
+                        elif dist < 3 + TARGET_SIZE:
                             intensity_level = MEDIUM
                         else:
                             intensity_level = LOW
@@ -557,11 +568,11 @@ class SelfAssembly:
                         alpha_rate = Heat_alpha[intensity_level]
 
                         if intensity_level == HIGH:
-                            upper = np.abs(self.sizeX - 1) * np.abs(self.sizeY - 1)
-                        elif intensity_level == MEDIUM:
                             upper = np.abs(self.sizeX - 2) * np.abs(self.sizeY - 2)
+                        elif intensity_level == MEDIUM:
+                            upper = np.abs(self.sizeX - 3) * np.abs(self.sizeY - 3)
                         elif intensity_level == LOW:
-                            upper = np.abs(self.sizeX - 4) * np.abs(self.sizeY - 4)
+                            upper = np.abs(self.sizeX - 5) * np.abs(self.sizeY - 5)
 
                         lower = self.sizeX * self.sizeY
                         new_intensity = alpha_rate * upper / lower
@@ -580,17 +591,17 @@ class SelfAssembly:
             target_y = self.target[t][1]
 
             # Set target surroundings heatmap values
-            for dx in range(-4, 5):
-                for dy in range(-4, 5):
+            for dx in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
+                for dy in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
                     # Ensure we're within bounds
                     if 0 <= target_x + dx < self.sizeX and 0 <= target_y + dy < self.sizeY:
                         # Calculate distance
                         dist = max(np.abs(dx), np.abs(dy))
 
                         # Update heatmap value based on distance
-                        if dist < 2:
+                        if dist < 1 + TARGET_SIZE:
                             self.heatmap[target_x + dx][target_y + dy] = HIGH
-                        elif dist < 4:
+                        elif dist < 3 + TARGET_SIZE:
                             self.heatmap[target_x + dx][target_y + dy] = MEDIUM
 
             # Handle the target itself
