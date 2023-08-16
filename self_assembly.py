@@ -1,4 +1,3 @@
-import copy
 import os
 import numpy as np
 import random
@@ -6,7 +5,6 @@ from utils.util import Pos, Agent
 from parameters.STD14 import *
 from minimal_surprise import MinimalSurprise
 from utils.sensors import *
-from draw import random_location
 
 
 class SelfAssembly:
