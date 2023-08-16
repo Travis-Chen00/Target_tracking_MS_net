@@ -14,6 +14,13 @@ Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approa
 Fitness function for this model<br/>
 <img src="/img/fitness function.jpg" alt="Fitness formula" width="600"/><br/>
 
+T = Time  
+N = Swarm Size  
+R<sub>pred  – 1</sub> = Five Temperature sensors  
+<hat>(G<sub>r<sup>n</sup></sub>)</hat>(t): The value of temperature sensor at Time t  
+P<sub>r<sup>n</sup></sub>(t): The real value of temperature sensor at Time t
+
+
 ### Heat Zone
 <span style="color:red">Red: *Dangerous Zone*.</span> 
 - Too close to the target, swarms should avoid. 
