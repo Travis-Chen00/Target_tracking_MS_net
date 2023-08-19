@@ -17,7 +17,7 @@ plt.plot(df.loc['HIGH'], label='HIGH', color='#F71E10')
 plt.legend(loc='upper right')
 plt.ylabel('Value')
 plt.xticks(range(0, len(df.columns) + 1, 10), labels=[f'Move {i}' for i in range((len(df.columns)//10)+1)], rotation=45)
-plt.title('One target (Grid 14 * 14) with Virtual Setting (Heat_MS)')
+plt.title('One target (Grid 15 * 15) using MS')
 
 # Save plot as line_graph.jpg
 plt.savefig('moving/8_13/test_data/line_graph.jpg')
