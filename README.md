@@ -7,6 +7,7 @@
 Our model is based on the Heat Minimal Surprise (Heat-MS) framework. This approach integrates the concept of "heat" into the minimal surprise network for the target tracking. <br/>
 ### Action Net
 <img src="/img/Action_net.png" alt="Action network" width="500"/> <br/>
+
 ### Prediction Net
 <img src="/img/Prediction_net.png" alt="Action network" width="500"/>
 
@@ -42,7 +43,7 @@ where L<sub>x</sub> and L<sub>y</sub> are the lengths and the widths of the grid
 
 ### Sensors
 5 Temperature sensors + 1 proximity sensor
-- Temperature Sensor is in the same location as S0
+- Temperature Sensor is in the same location as S0<br/>
 <img src="/img/14 sensors.png" alt="Heat Zones" width="250"/>
 
 ## Training Strategy
@@ -50,6 +51,10 @@ where L<sub>x</sub> and L<sub>y</sub> are the lengths and the widths of the grid
 **Genetic Algorithm**
 
 We employ the [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) as our primary training strategy.
+
+**Dynamic mutation**
+
+**Catastrophe**
 
 ## Target Moving Strategy
 
