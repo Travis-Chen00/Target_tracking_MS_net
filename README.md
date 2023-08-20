@@ -34,7 +34,6 @@ P<sub>r<sup>n</sup></sub>(t): The real value of temperature sensor at Time t
 
 <img src="/img/Heat_Zone.png" alt="Heat Zones" width="250"/>
 
-The red zone, which has the highest temperature, represents the closest place to the target. If some swarms stay in this area, they can be an obstacle and block the movement of the target, so, swarms should avoid this area. Similarly, all positions in the blue zone are too far from the target. In this area, swarms can feel cold and fail to follow the target. On the other hand, the orange zone enjoys the second-highest temperature; this place illustrates perfect tracking. 
 **Heat intensity** [\[10.1162/isal_a_00650\]](https://www.mitpressjournals.org/doi/10.1162/isal_a_00650) \( \delta \) decreases with distance to the target as given by
 
 <img src="/img/heat_intensity.jpg" alt="Heat intensity" width="600"/><br/>
@@ -54,11 +53,12 @@ We employ the [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorith
 
 **Dynamic mutation**
 
+
 **Catastrophe**
 
 ## Target Moving Strategy
 
-The target will move in the beginning of each generation, the range of its location is [0, SizeX], [0, SizeY]
+The target will move in the beginning of each two generations, the range of its location is [0, SizeX], [0, SizeY]
 
 ## Evolution
 ### Grid size

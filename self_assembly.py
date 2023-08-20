@@ -2,7 +2,6 @@ import os
 import numpy as np
 import random
 from utils.util import Pos, Agent
-from parameters.STD14 import *
 from minimal_surprise import MinimalSurprise
 from utils.sensors import *
 
@@ -47,7 +46,6 @@ class SelfAssembly:
             log: index of log file
             noagent: Number of agents
     """
-
     def execute(self, gen, ind, p_initial, maxTime, log, noagents):
         timeStep = 0  # Current timestep
 
@@ -65,7 +63,7 @@ class SelfAssembly:
 
         moving = f"Agents_{NUM_AGENTS}_TimeStep_{maxTime}_Gen_{gen}"
         # file names
-        directory = "moving/8_13/test_data"
+        directory = "moving/8_15/new_data"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -73,7 +71,6 @@ class SelfAssembly:
 
         self.p = p_initial.copy()
 
-        # random_location(p_initial, self.p, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
         storage_p = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(maxTime + 1)]
 
         while timeStep < maxTime:
@@ -96,10 +93,6 @@ class SelfAssembly:
 
                 if SENSOR_MODEL == STDL:
                     sensors = sensor.sensorModelSTDL(i, grid, self.heatmap, self.p)
-                # elif SENSOR_MODEL == STDS:
-                #     sensors = sensor.sensorModelSTD(i, grid, self.p)
-                # elif SENSOR_MODEL == STDSL:
-                #     sensors = sensor.sensorModelSTDSL(i, grid, self.p)
 
                 for j in range(SENSORS):
                     # set sensor values as ANN input values
@@ -111,8 +104,6 @@ class SelfAssembly:
                         diff += 1 - np.abs(sensors[j] - self.minimalSurprise.prediction.predictions[i][j])
 
                 # Propagate action network
-                # Input: current sensor values + last action
-                # Output: next action --> 0 or 1
                 if timeStep <= 0:
                     inputA[SENSORS] = STRAIGHT
                 else:  # Last time action
@@ -123,13 +114,9 @@ class SelfAssembly:
                     self.minimalSurprise.action.weight_actionNet_layer1[ind],
                     self.minimalSurprise.action.weight_actionNet_layer2[ind], inputA)
 
-                # print("Action output for agent", i, ": ", action_output[0])
                 self.minimalSurprise.action.current_action[i][timeStep] = action_output[0]
 
                 # Propagate prediction network Call it after *Action*
-                # Input: current sensor values + next action [Returned by ANN]
-                # Output: Prediction of sensor value (per agent)
-                # Action from the *Action* network
                 inputP[SENSORS] = self.minimalSurprise.action.current_action[i][timeStep]
 
                 # Feed input values into the prediction Network
@@ -186,24 +173,11 @@ class SelfAssembly:
                     self.p_next[i].heading.x = round(np.cos(angle + action_output[1] * (PI / 2)))
                     self.p_next[i].heading.y = round(np.sin(angle + action_output[1] * (PI / 2)))
 
-                # if self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == HIGH:
-                #     alpha_rate = 0.8
-                # elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == MEDIUM:
-                #     alpha_rate = 0.3
-                # elif self.heatmap[self.p_next[i].coord.x][self.p_next[i].coord.y] == LOW:
-                #     alpha_rate = 0.9
-
                 storage_p[timeStep] = self.p_next.copy()
-
                 sensor_fit = float(diff) / float(SENSORS - 1)
-                # dist = self.heat_intensity[self.p[i].coord.x][self.p[i].coord.y]
-                # fit_individual = alpha_rate * dist + (1 - alpha_rate) * sensor_fit
-
                 total_fit.append(sensor_fit)
 
             # End Agent Iterations
-
-            # random_location(self.p, self.p_next, self.target, self.sizeX, self.sizeY, 0, 0)
             timeStep += 1
 
             # Update positions
@@ -213,9 +187,7 @@ class SelfAssembly:
             self.p_next = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]  # Reset p_next
         # End while loop
 
-        # F = 1 / T * N * R * (1 - |S - P|) * HOT_PARAMETER
         sum_num = sum(total_fit)
-
         # Length = 100, MAX_TIME = 10, noagents = 10
         fit_return = sum_num / float(len(total_fit) * MAX_TIME * noagents)
 
@@ -235,13 +207,14 @@ class SelfAssembly:
             for t in range(maxTime + 1):
                 for i in range(NUM_AGENTS):
                     if t == 0:
-                        f.write(f"{t}, {i}: {p_initial[i].coord.x}, {p_initial[i].coord.y}, "
-                                f"{p_initial[i].heading.x}, {p_initial[i].heading.y}\n")
+                        f.write(f"{t}, {i}: {int(p_initial[i].coord.x)}, {int(p_initial[i].coord.y)}, "
+                                f"{int(p_initial[i].heading.x)}, {int(p_initial[i].heading.y)}, "
+                                f"{int(p_initial[i].inspire)}\n")
                     else:
-                        f.write(f"{t}, {i}: {storage_p[t - 1][i].coord.x}, {storage_p[t - 1][i].coord.y}, "
-                                f"{storage_p[t - 1][i].heading.x}, {storage_p[t - 1][i].heading.y}\n")
+                        f.write(f"{t}, {i}: {int(storage_p[t - 1][i].coord.x)}, {int(storage_p[t - 1][i].coord.y)}, "
+                                f"{int(storage_p[t - 1][i].heading.x)}, {int(storage_p[t - 1][i].heading.y)}, "
+                                f"{int(p_initial[i].inspire)}\n")
                 f.write(f"\n")
-            f.close()
 
         return fit_return, max_p
 
@@ -250,8 +223,6 @@ class SelfAssembly:
     """
 
     def evolution(self):
-        print("Evolution count: ", self.count)
-
         # Store fitness for all population
         fitness = np.zeros(POP_SIZE, dtype=float)
 
@@ -261,51 +232,56 @@ class SelfAssembly:
         temp_p = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
         tmp_initial = [Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)]
 
-        # file names
-        directory = "results/(One_Target_Medium)"
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        file = f"_Agents_{NUM_AGENTS}"
-
-        agent_file = os.path.join(directory, file)
-
         # initialise weights of neural nets in range [-0.5, 0.5]
-        # Shape (50, 3, 224)
+        # Define layers and their attributes to avoid repetitive code
+        layers_info = {
+            0: {
+                'action': {
+                    'weight': 'weight_actionNet_layer0',
+                    'connections': ACT_CONNECTIONS
+                },
+                'prediction': {
+                    'weight': 'weight_predictionNet_layer0',
+                    'connections': PRE_CONNECTIONS
+                }
+            },
+            1: {
+                'action': {
+                    'weight': 'weight_actionNet_layer1',
+                    'connections': INPUTA * HIDDENA
+                },
+                'prediction': {
+                    'weight': 'weight_predictionNet_layer1',
+                    'connections': (INPUTP + 1) * HIDDENP
+                }
+            },
+            2: {
+                'action': {
+                    'weight': 'weight_actionNet_layer2',
+                    'connections': HIDDENA * OUTPUTA
+                },
+                'prediction': {
+                    'weight': 'weight_predictionNet_layer2',
+                    'connections': HIDDENP * OUTPUTP
+                }
+            }
+        }
+
         for ind in range(POP_SIZE):
             for j in range(LAYERS):
-                if j == 0:
-                    for k in range(ACT_CONNECTIONS):
-                        self.minimalSurprise.action.weight_actionNet_layer0[ind][k] = random.uniform(-0.5, 0.5)
-                    for k in range(PRE_CONNECTIONS):
-                        self.minimalSurprise.prediction.weight_predictionNet_layer0[ind][k] = random.uniform(-0.5, 0.5)
-                    continue
+                if j in layers_info:
+                    for net_type, net_info in layers_info[j].items():
+                        net_weights = getattr(self.minimalSurprise, net_type)
+                        weights = getattr(net_weights, net_info['weight'])
 
-                elif j == 1:  # 15 * 8 for action || 15 * 14 for prediction
-                    # print("Layer 2:", INPUTA * HIDDENA, INPUTP * HIDDENP)
-                    for k in range(INPUTA * HIDDENA):
-                        self.minimalSurprise.action.weight_actionNet_layer1[ind][k] = random.uniform(-0.5, 0.5)
-                    for k in range((INPUTP + 1) * HIDDENP):
-                        self.minimalSurprise.prediction.weight_predictionNet_layer1[ind][k] = random.uniform(-0.5, 0.5)
-                    continue
-
-                elif j == 2:
-                    # print("Layer 3:", HIDDENA * (OUTPUTA + 1), (HIDDENP * (OUTPUTP + 1)))
-                    for k in range(HIDDENA * OUTPUTA):
-                        self.minimalSurprise.action.weight_actionNet_layer2[ind][k] = random.uniform(-0.5, 0.5)
-                    for k in range(HIDDENP * OUTPUTP):
-                        self.minimalSurprise.prediction.weight_predictionNet_layer2[ind][k] = random.uniform(-0.5, 0.5)
-                    continue
+                        for k in range(net_info['connections']):
+                            weights[ind][k] = random.uniform(-0.5, 0.5)
 
         p_initial = self.location_init()
-        # random_location(p_initial, p_initial, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
 
-        # asd_prev = 0
+        asd_prev = 0
 
         # evolutionary runs
-        # For one generation:
-        # 50 Agents * 10 times repetitions ==> 500 individuals
-        # Total: 50 * 10 * 100 ==> 50000 generations
         for gen in range(MAX_GENS):
             max_gen = 0.0
             avg = 0.0
@@ -318,10 +294,7 @@ class SelfAssembly:
                 temp_p[i].heading.x = p_initial[i].heading.x
                 temp_p[i].heading.y = p_initial[i].heading.y
                 temp_p[i].inspire = p_initial[i].inspire
-            # temp_p = p_initial.copy()
-            # population level (iterate through individuals)
-            # POP_SIZE = 50
-            # Each generation have 50 population, 100 agents
+
             for ind in range(POP_SIZE):
                 # fitness evaluation - initialisation based on case
                 fitness[ind] = 0.0
@@ -362,8 +335,6 @@ class SelfAssembly:
                         agent_maxfit[i].heading.y = tmp_agent_maxfit_final[i].heading.y
                         agent_maxfit[i].inspire = tmp_agent_maxfit_final[i].inspire
 
-                    # agent_maxfit = tmp_agent_maxfit_final.copy()
-
                     tmp_initial = agent_maxfit.copy()
                 else:
                     fitness_count += 1
@@ -379,31 +350,12 @@ class SelfAssembly:
 
             p_initial = tmp_initial.copy()  # Update Initial pos
             self.cata = tmp_initial.copy()
-
-            print(f"#{gen} {max_gen} ({maxID})")
-            with open(agent_file, "a") as f:
-                f.write(f"Gen: {gen}\n")
-                f.write(f"Grid: {self.sizeX}, {self.sizeY}\n")
-                f.write(f"Fitness: {max_gen}\n")
-                # f.write(f"Target: {self.target[0]}, {self.target[1]}\n")
-                for i in range(NUM_AGENTS):
-                    f.write(f"{agent_maxfit[i].coord.x}, {agent_maxfit[i].coord.y}, ")
-                    f.write(f"{temp_p[i].coord.x}, {temp_p[i].coord.y}, ")
-                    f.write(f"{agent_maxfit[i].heading.x}, {agent_maxfit[i].heading.y}, ")
-                    f.write(f"{temp_p[i].heading.x}, {temp_p[i].heading.y}, ")
-                    f.write(f"{temp_p[i].inspire}, ")
-                    f.write("\n")
-                f.write("\n")
-
             self.tmp_fit = 0
 
-            # if gen == 0:
-            #     asd_prev = self.minimalSurprise.dynamic_mutate(maxID, fitness, gen, asd_prev)
-            # else:
-            #     asd_prev = self.minimalSurprise.dynamic_mutate(maxID, fitness, gen, asd_prev)
-            self.minimalSurprise.select_mutate(maxID, fitness)
-
-            # Do selection & mutation per generation
+            if gen == 0:
+                asd_prev = self.minimalSurprise.dynamic_mutate(maxID, fitness, gen, asd_prev)
+            else:
+                asd_prev = self.minimalSurprise.dynamic_mutate(maxID, fitness, gen, asd_prev)
             # self.minimalSurprise.select_mutate(maxID, fitness)
 
             "Do target moving HERE"
@@ -419,8 +371,10 @@ class SelfAssembly:
             #     self.update_heatmap(tmp_initial)
             # else:
             #     self.target_disappear()
+
             # End evolution runs loop
-            self.update_heatmap(tmp_initial)
+            if gen > 0 and gen % 2 == 0:
+                self.update_heatmap(tmp_initial)
 
         self.execute(gen, ind, p_initial, MAX_TIME, 1, NUM_AGENTS)
 
@@ -510,34 +464,18 @@ class SelfAssembly:
         grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
 
         for i in range(NUM_AGENTS):
-            grid[agent[i].coord.x][agent[i].coord.y] = 1  # set grid cell occupied
+            grid[int(agent[i].coord.x)][int(agent[i].coord.y)] = 1  # set grid cell occupied
 
         block = True
 
         while block:
-            randInd = random.randint(0, 1)
-            direction = [-1, 1]
-
-            if random.random() < 0.5:  # West & East
-                tmp_X = x + direction[randInd]
-                tmp_Y = y
-            else:  # North & South
-                tmp_X = x
-                tmp_Y = y + direction[randInd]
+            tmp_X = random.randint(0, self.sizeX)
+            tmp_Y = random.randint(0, self.sizeY)
 
             if 0 <= tmp_X < self.sizeX and 0 <= tmp_Y < self.sizeY and grid[int(tmp_X)][int(tmp_Y)] == 0:
                 block = False  # Move the target and Avoid walls
 
         return tmp_X, tmp_Y
-
-    def target_disappear(self):
-        for t in range(AIM_NUM):
-            tmp_x, tmp_y = self.target[t][0], self.target[t][1]
-            self.tmp_target[t][0], self.tmp_target[t][1] = tmp_x, tmp_y
-            self.target[t][0], self.target[t][1] = -1, -1
-
-        self.heatmap = [[LOW for _ in range(self.sizeY)] for _ in range(self.sizeX)]
-        self.update_heat_intensity(self.target)
 
     def update_heat_intensity(self, targets):
         # Initialize heat_intensity to zero
