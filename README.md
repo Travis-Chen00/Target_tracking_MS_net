@@ -18,8 +18,8 @@ Fitness function for this model<br/>
 T = Time  
 N = Swarm Size  
 R<sub>pred  – 1</sub> = Five Temperature sensors  
-<hat>(G<sub>r<sup>n</sup></sub>)</hat>(t): The value of temperature sensor at Time t  
-P<sub>r<sup>n</sup></sub>(t): The real value of temperature sensor at Time t
+_g<sub>r</sub><sup>n</sup>(t)_: The value of temperature sensor at Time t  
+_p<sub>r</sub><sup>n</sup>(t)_: The real value of temperature sensor at Time t
 
 
 ### Heat Zone
@@ -37,13 +37,15 @@ P<sub>r<sup>n</sup></sub>(t): The real value of temperature sensor at Time t
 **Heat intensity** [\[10.1162/isal_a_00650\]](https://www.mitpressjournals.org/doi/10.1162/isal_a_00650) \( \delta \) decreases with distance to the target as given by
 
 <img src="/img/heat_intensity.jpg" alt="Heat intensity" width="600"/><br/>
-where L<sub>x</sub> and L<sub>y</sub> are the lengths and the widths of the grid world, D<sub>ST</sub> is the Euclidean distance to the target, and δ (delta) is the temperature rate for these three zones, which are 0.2 for the blue zone, 0.7 for the orange zone, and 0.1 for the red zone. Equation (1) normalized the heat intensity H between 0 and 1, resulting in maximum light intensity *H* = 1 in the target and a light intensity of approximately zero at the corners.
+L<sub>x</sub> and L<sub>y</sub>:the lengths and the widths of the grid world.<br/>
+D<sub>ST</sub> is the Euclidean distance to the target<br/> 
+δ (delta) is the temperature rate for these three zones, which are 0.2 for the blue zone, 0.7 for the orange zone, and 0.1 for the red zone.
 
 
 ### Sensors
 5 Temperature sensors + 1 proximity sensor
 - Temperature Sensor is in the same location as S0<br/>
-<img src="/img/14 sensors.png" alt="Heat Zones" width="250"/>
+<img src="/img/agent.jpg" alt="Heat Zones" width="250"/>
 
 ## Training Strategy
 
@@ -60,39 +62,59 @@ We employ the [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorith
 
 The target will move in the beginning of each two generations, the range of its location is [0, SizeX], [0, SizeY]
 
-## Evolution
-### Grid size
+## Experiments & Evaluation
+### Basic Experiment Setting
+## Simulation Parameters
 
-- Grids = {15, 20}
-- Agents Number: 50 
-- Basic Sensors: 14
-- Temperature Zone = 1x1 + 3x3
+All parameters in the basic experiment:
 
-### Sensor model
+| **Parameter**                             | **Value**                      |
+|-------------------------------------------|--------------------------------|
+| Area size (L<sub>x</sub>, L<sub>y</sub>)  | (15,15)                        |
+| Swarm size \(N\)                          | 10                             |
+| \# of sensors \(R<sub>g</sub>\)           | 6                              |
+| \# of sensors \(R<sub>pred</sub>\)        | 5                              |
+| sensor values \(S<sub>r</sub>\)           | [0.108, 0.525, 0.087] / [0, 1] |
+| Action value \(a<sub>0</sub>)             | [0, 1]                         |
+| Action value \(a<sub>1</sub>\)            | [-1, 1]                        |
+| Red zone size                             | 2 x 2                          |
+| Orange zone size                          | 4 x 4                          |
+| Blue zone size                            | Area size – (Red + Orange)     |
+| Population size \(\mu\)                   | 5000                           |
+| Number of generations \(g<sub>max</sub>\) | 100                            |
+| evaluation length \(T\) (time steps)      | 10                             |
+| Elitism                                   | 1                              |
+| Mutation rate \(p<sub>mut</sub>\)         | 0.3                            |
+| Catastrophe rate \(p<sub>cata</sub>\)     | 0.4                            |
+| Number of triggers catastrophe            | 300                            |
 
-- Basic Sensors: {6, 14, 8}
-- Agents: 50
-- Grid = 15
-- Temperature Zone = 1x1 + 3x3
+### Basic Results
+The experiment uses these parameters in the previous table, the results can be seen in the folder [Target_tracking_MS_net/results/basic_experiments](/Target_tracking_MS_net/results/basic_experiments)
+In this experiment, the target will move each generation with North, South, East, and West directions.
+### Control experiments
+1. Swarm size: The swarm sizes are 10, 20, and 50, the grid world is 15 * 15 with only one target.
+<br/>
+2. Grid size: The grid world are in the range of {11, 20}. In this experiment, the agent number is 10 and target number is 1. 
+<br/>
+3. Target size: In the reality, a target can be any size or shape. This experiment discover the bigger and tiny targets with grid world 15 * 15 and 10 agents.
+<br/>
+The **results** can be seen in [Target_tracking_MS_net/results/control_experiments](/Target_tracking_MS_net/results/control_experiments)
 
-### Agents Number
+### Complex scenario
+1. **Multi-target**: There are 2 targets which are moving all the time, we use 10 agents to track both of them.
+2. **Randomly moving target**: Since the target movement is uncertain, we make it randomly move in this grid world.
+3. **Target disappearing & appearing**: The target will disappear on a 2 times basis, and then appear again.
+<br/>
+All **results** can be seen in the folder [Target_tracking_MS_net/results/control_experiments](/Target_tracking_MS_net/results/control_experiments)
 
-- Agents: {10, 20, 50, 100}. 
-- Grid = 15
-- Basic Sensors: 14
-- Temperature Zone = 1x1 + 3x3
+### Evaluation
+We compare our model (TAMS) with the traditional genetic algorithm (GA), and minimal surprise network (MS).
+This project adopts four metrics to evaluate these three models, which are Correct, Waste, Realize, and Leave. The definition are shown as follows,
+1. **Correct Number**:
 
-### Temperature Zone
+2. **Time waste**:
 
-1. High zone: {1x1, 2x2}
-2. Medium zone: {2x2, 3x3}
+3. **Time realize**:
 
-- Grids = 15
-- Agents Number: 50 
-- Basic Sensors: 14
+4. **Leaving probability**:
 
-### Algorithm Compare
-
-- Traditional genetic Algorithm
-- Minimal Surprise + genetic algorithm
-- Heat-MS + genetic algorithm
