@@ -118,7 +118,7 @@ def moving(agents, target, sizeX, sizeY):
     plt.close()
 
     # Create videos
-    with imageio.get_writer('moving/8_13/test_data/movie.gif', fps=15) as writer:
+    with imageio.get_writer('moving/8_13/test_data/movie.mp4', fps=15) as writer:
         for filename in image_files:
             image = imageio.imread(filename)
             writer.append_data(image)
