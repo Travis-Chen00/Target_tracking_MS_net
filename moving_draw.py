@@ -118,7 +118,7 @@ def moving(agents, target, sizeX, sizeY):
     plt.close()
 
     # Create videos
-    with imageio.get_writer('moving/8_13/test_data/movie.mp4', fps=15) as writer:
+    with imageio.get_writer('moving/8_13/test_data/TAMS_movie.gif', fps=15) as writer:
         for filename in image_files:
             image = imageio.imread(filename)
             writer.append_data(image)
@@ -129,31 +129,36 @@ def moving(agents, target, sizeX, sizeY):
 
 
 def update_heatmap_position(heatmap, target, hori, vertical):
-    for dx in range(-4, 5):
-        for dy in range(-4, 5):
-            x, y = target[0] + dx, target[1] + dy
+    x_target, y_target = target
 
-            if 0 <= x < 15 and 0 <= y < 15:  # Boundary check
-                dist = np.sqrt(dx**2 + dy**2)  # Euclidean distance
+    # Boundary check helper function
+    def in_boundary(x, y):
+        return 0 <= x < 15 and 0 <= y < 15
 
-                if dist < 2:
-                    heatmap[x][y] = HIGH
-                elif dist < 4:
-                    heatmap[x][y] = MEDIUM
+    # Update heatmap values based on the distance from the target
+    def update_values(x, y, dist):
+        if in_boundary(x, y):
+            if dist < 2:
+                heatmap[x][y] = HIGH
+            elif dist < 4:
+                heatmap[x][y] = MEDIUM
 
-    if np.abs(hori) < 4:
-        limit = np.abs(hori)
-        for dx in range(-limit, limit+1):
-            x, y = target[0] + dx, target[1]
-            if 0 <= x < 15:
-                heatmap[x][y] = HIGH if x == 14 else MEDIUM
+    # Handle the common logic for updating values
+    def handle_case(limit_x, limit_y):
+        for dx in range(-limit_x, limit_x + 1):
+            for dy in range(-limit_y, limit_y + 1):
+                x, y = x_target + dx, y_target + dy
+                dist = max(np.abs(dx), np.abs(dy))
 
-    if np.abs(vertical) < 4:
-        limit = np.abs(vertical)
-        for dy in range(-limit, limit+1):
-            x, y = target[0], target[1] + dy
-            if 0 <= y < 15:
-                heatmap[x][y] = HIGH if y == 14 else MEDIUM
+                update_values(x, y, dist)
+
+    # Check cases and apply the required logic
+    if np.abs(hori) >= 4 and np.abs(vertical) >= 4:
+        handle_case(4, 4)
+    elif np.abs(hori) < 4:
+        handle_case(np.abs(hori), 4)
+    elif np.abs(vertical) < 4:
+        handle_case(4, np.abs(vertical))
 
 
 def parse_colon_separated_line(line):
