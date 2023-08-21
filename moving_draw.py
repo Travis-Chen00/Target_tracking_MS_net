@@ -128,32 +128,32 @@ def moving(agents, target, sizeX, sizeY):
         os.remove(filename)
 
 
-def update_heatmap_position(heatmap, target, hori, vertical, sizeX, sizeY):
-    for dx in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
-        for dy in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
+def update_heatmap_position(heatmap, target, hori, vertical):
+    for dx in range(-4, 5):
+        for dy in range(-4, 5):
             x, y = target[0] + dx, target[1] + dy
 
-            if 0 <= x < sizeX and 0 <= y < sizeY:  # Boundary check
-                dist = max(np.abs(dx), np.abs(dy))
+            if 0 <= x < 15 and 0 <= y < 15:  # Boundary check
+                dist = np.sqrt(dx**2 + dy**2)  # Euclidean distance
 
-                if dist < 1 + TARGET_SIZE:
-                    heatmap[x][y] = max(heatmap[x][y], HIGH)
-                elif dist < 3 + TARGET_SIZE:
-                    heatmap[x][y] = max(heatmap[x][y], MEDIUM)
+                if dist < 2:
+                    heatmap[x][y] = HIGH
+                elif dist < 4:
+                    heatmap[x][y] = MEDIUM
 
-    if np.abs(hori) < 3 + TARGET_SIZE:
+    if np.abs(hori) < 4:
         limit = np.abs(hori)
-        for dx in range(-limit, limit + 1):
+        for dx in range(-limit, limit+1):
             x, y = target[0] + dx, target[1]
-            if 0 <= x < sizeX:
-                heatmap[x][y] = max(heatmap[x][y], HIGH) if x == 14 else max(heatmap[x][y], MEDIUM)
+            if 0 <= x < 15:
+                heatmap[x][y] = HIGH if x == 14 else MEDIUM
 
-    if np.abs(vertical) < 3 + TARGET_SIZE:
+    if np.abs(vertical) < 4:
         limit = np.abs(vertical)
-        for dy in range(-limit, limit + 1):
+        for dy in range(-limit, limit+1):
             x, y = target[0], target[1] + dy
-            if 0 <= y < sizeY:
-                heatmap[x][y] = max(heatmap[x][y], HIGH) if y == 14 else max(heatmap[x][y], MEDIUM)
+            if 0 <= y < 15:
+                heatmap[x][y] = HIGH if y == 14 else MEDIUM
 
 
 def parse_colon_separated_line(line):
@@ -226,7 +226,7 @@ if __name__ == "__main__":
             for target1, target2 in targets:
                 heatmap[target1[0]][target1[1]], heatmap[target2[0]][target2[1]] = AIM, AIM
                 for target, size in zip([target1, target2], [sizeX, sizeY]):
-                    update_heatmap_position(heatmap, target, target[0] - size, target[1] - size, sizeX, sizeY)
+                    update_heatmap_position(heatmap, target, target[0] - size, target[1] - size)
 
             csv_data.extend([{
                 "Timestep": t,
