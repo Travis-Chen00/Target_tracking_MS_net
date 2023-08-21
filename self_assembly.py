@@ -1,4 +1,5 @@
 import os
+from copy import copy, deepcopy
 import numpy as np
 import random
 from utils.util import Pos, Agent
@@ -46,6 +47,7 @@ class SelfAssembly:
             log: index of log file
             noagent: Number of agents
     """
+
     def execute(self, gen, ind, p_initial, maxTime, log, noagents):
         timeStep = 0  # Current timestep
 
@@ -71,6 +73,7 @@ class SelfAssembly:
 
         self.p = p_initial.copy()
 
+        # random_location(p_initial, self.p, self.target, self.sizeX, self.sizeY, 1, 0, heatmap)
         storage_p = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(maxTime + 1)]
 
         while timeStep < maxTime:
@@ -129,7 +132,8 @@ class SelfAssembly:
 
                 # Check next action
                 # 0 == move straight; 1 == turn
-                if self.minimalSurprise.action.current_action[i][timeStep] == STRAIGHT:
+                current_action = self.minimalSurprise.action.current_action[i][timeStep]
+                if current_action == STRAIGHT:
                     # movement only possible when cell in front is not occupied (sensor S0)
                     # move in heading direction (i.e. straight)
                     tmp_agent_next.x = sensor.adjustXPosition(self.p[i].coord.x + self.p[i].heading.x)
@@ -288,12 +292,13 @@ class SelfAssembly:
             maxID = -1
             fitness_count = 0
 
-            for i in range(NUM_AGENTS):
-                temp_p[i].coord.x = p_initial[i].coord.x
-                temp_p[i].coord.y = p_initial[i].coord.y
-                temp_p[i].heading.x = p_initial[i].heading.x
-                temp_p[i].heading.y = p_initial[i].heading.y
-                temp_p[i].inspire = p_initial[i].inspire
+            # for i in range(NUM_AGENTS):
+            #     temp_p[i].coord.x = p_initial[i].coord.x
+            #     temp_p[i].coord.y = p_initial[i].coord.y
+            #     temp_p[i].heading.x = p_initial[i].heading.x
+            #     temp_p[i].heading.y = p_initial[i].heading.y
+            #     temp_p[i].inspire = p_initial[i].inspire
+            temp_p = deepcopy(p_initial)
 
             for ind in range(POP_SIZE):
                 # fitness evaluation - initialisation based on case
@@ -313,12 +318,13 @@ class SelfAssembly:
 
                 # store best fitness + id of repetition
                 if store:
-                    for i in range(NUM_AGENTS):  # store agent end positions
-                        tmp_agent_maxfit_final[i].coord.x = max_p[i].coord.x
-                        tmp_agent_maxfit_final[i].coord.y = max_p[i].coord.y
-                        tmp_agent_maxfit_final[i].heading.x = max_p[i].heading.x
-                        tmp_agent_maxfit_final[i].heading.y = max_p[i].heading.y
-                        tmp_agent_maxfit_final[i].inspire = max_p[i].inspire
+                    # for i in range(NUM_AGENTS):  # store agent end positions
+                    #     tmp_agent_maxfit_final[i].coord.x = max_p[i].coord.x
+                    #     tmp_agent_maxfit_final[i].coord.y = max_p[i].coord.y
+                    #     tmp_agent_maxfit_final[i].heading.x = max_p[i].heading.x
+                    #     tmp_agent_maxfit_final[i].heading.y = max_p[i].heading.y
+                    #     tmp_agent_maxfit_final[i].inspire = max_p[i].inspire
+                    tmp_agent_maxfit_final = deepcopy(max_p)
 
                 # Average fitness of generation
                 avg += fitness[ind]
@@ -328,13 +334,13 @@ class SelfAssembly:
                     max_gen = fitness[ind]
                     maxID = ind
                     # store initial and final agent positions
-                    for i in range(NUM_AGENTS):
-                        agent_maxfit[i].coord.x = tmp_agent_maxfit_final[i].coord.x
-                        agent_maxfit[i].coord.y = tmp_agent_maxfit_final[i].coord.y
-                        agent_maxfit[i].heading.x = tmp_agent_maxfit_final[i].heading.x
-                        agent_maxfit[i].heading.y = tmp_agent_maxfit_final[i].heading.y
-                        agent_maxfit[i].inspire = tmp_agent_maxfit_final[i].inspire
-
+                    # for i in range(NUM_AGENTS):
+                    #     agent_maxfit[i].coord.x = tmp_agent_maxfit_final[i].coord.x
+                    #     agent_maxfit[i].coord.y = tmp_agent_maxfit_final[i].coord.y
+                    #     agent_maxfit[i].heading.x = tmp_agent_maxfit_final[i].heading.x
+                    #     agent_maxfit[i].heading.y = tmp_agent_maxfit_final[i].heading.y
+                    #     agent_maxfit[i].inspire = tmp_agent_maxfit_final[i].inspire
+                    agent_maxfit = deepcopy(tmp_agent_maxfit_final)
                     tmp_initial = agent_maxfit.copy()
                 else:
                     fitness_count += 1
@@ -373,8 +379,9 @@ class SelfAssembly:
             #     self.target_disappear()
 
             # End evolution runs loop
-            if gen > 0 and gen % 2 == 0:
-                self.update_heatmap(tmp_initial)
+            # if gen > 0 and gen % 2 == 0:
+            #     self.update_heatmap(tmp_initial)
+            self.update_heatmap(tmp_initial)
 
         self.execute(gen, ind, p_initial, MAX_TIME, 1, NUM_AGENTS)
 
@@ -443,7 +450,7 @@ class SelfAssembly:
                 x = random.randint(0, self.sizeX - 1)
                 y = random.randint(0, self.sizeY - 1)
 
-                if grid[x][y] == 0 and self.heatmap[x][y] == LOW:
+                if grid[x][y] == 0 and self.heatmap[x][y] == MEDIUM:
                     p_initial[i].coord.x, p_initial[i].coord.y = x, y
                     p_initial[i].inspire = MEDIUM
                     grid[x][y] = 1  # Mark the position as occupied
@@ -464,13 +471,20 @@ class SelfAssembly:
         grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
 
         for i in range(NUM_AGENTS):
-            grid[int(agent[i].coord.x)][int(agent[i].coord.y)] = 1  # set grid cell occupied
+            grid[agent[i].coord.x][agent[i].coord.y] = 1  # set grid cell occupied
 
         block = True
 
         while block:
-            tmp_X = random.randint(0, self.sizeX)
-            tmp_Y = random.randint(0, self.sizeY)
+            randInd = random.randint(0, 1)
+            direction = [-1, 1]
+
+            if random.random() < 0.5:  # West & East
+                tmp_X = x + direction[randInd]
+                tmp_Y = y
+            else:  # North & South
+                tmp_X = x
+                tmp_Y = y + direction[randInd]
 
             if 0 <= tmp_X < self.sizeX and 0 <= tmp_Y < self.sizeY and grid[int(tmp_X)][int(tmp_Y)] == 0:
                 block = False  # Move the target and Avoid walls
@@ -491,7 +505,6 @@ class SelfAssembly:
                     # Ensure (x,y) is within bounds
                     if 0 <= x < self.sizeX and 0 <= y < self.sizeY:
                         dist = max(np.abs(dx), np.abs(dy))
-                        alpha_rate = 0.0
                         upper = 0.0
 
                         if dist < 1 + TARGET_SIZE:
