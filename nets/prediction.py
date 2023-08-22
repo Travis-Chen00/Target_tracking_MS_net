@@ -71,11 +71,10 @@ class Prediction:
             # print("Before: ", zone, self.predictions[agent][j])
             if zone == MEDIUM:
                 result = Heat_int[MEDIUM] * Heat_alpha[MEDIUM]
-                self.predictions[agent][j] = float(result)
+                self.predictions[agent][j] = net[j] if -0.01 <= float(result) - net[j] <= 0.01 else float(result)
             elif zone == LOW:
                 result = Heat_int[LOW] * Heat_alpha[LOW]
-                self.predictions[agent][j] = float(result)
+                self.predictions[agent][j] = net[j] if -0.01 <= float(result) - net[j] <= 0.01 else float(result)
             elif zone == HIGH:
                 result = Heat_int[MEDIUM] * Heat_alpha[MEDIUM]
-                self.predictions[agent][j] = float(result)
-            # print("After: ", zone, self.predictions[agent][j])
+                self.predictions[agent][j] = net[j] if -0.01 <= float(result) - net[j] <= 0.01 else float(result)
