@@ -4,16 +4,16 @@ import random
 
 
 def draw_grid_world():
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(4, 4))
 
     center_x, center_y = 5, 5
 
     circle = patches.Circle((center_y, center_x), 0.4, fill=False, edgecolor="black")
     ax.add_patch(circle)
 
-    ax.text(center_y, center_x - 0.1, "G0", ha='center', va='center_baseline', fontsize=12, color='blue')
+    ax.text(center_y, center_x - 0.1, "G0", ha='center', va='center_baseline', fontsize=10, color='blue')
 
-    ax.plot([center_y, center_y], [center_x, center_x + 0.4], color="black", linewidth=2)
+    ax.plot([center_y, center_y], [center_x, center_x + 0.4], color="black", linewidth=1.5)
 
     blue_rects = [
         (center_y - 1, center_x, "G3") if center_y - 1 >= 4 else None,
@@ -33,7 +33,8 @@ def draw_grid_world():
     ax.set_xlim(3, 7)
     ax.set_ylim(3, 7)
     ax.axis("off")
-    plt.savefig("agent.jpg", dpi=300)
+    plt.tight_layout()
+    plt.savefig("agent.jpg", dpi=300, bbox_inches='tight', pad_inches=0.05)
     plt.show()
 
 

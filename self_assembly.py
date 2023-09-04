@@ -293,11 +293,6 @@ class SelfAssembly:
             fitness_count = 0
 
             # for i in range(NUM_AGENTS):
-            #     temp_p[i].coord.x = p_initial[i].coord.x
-            #     temp_p[i].coord.y = p_initial[i].coord.y
-            #     temp_p[i].heading.x = p_initial[i].heading.x
-            #     temp_p[i].heading.y = p_initial[i].heading.y
-            #     temp_p[i].inspire = p_initial[i].inspire
             temp_p = deepcopy(p_initial)
 
             for ind in range(POP_SIZE):
@@ -319,11 +314,6 @@ class SelfAssembly:
                 # store best fitness + id of repetition
                 if store:
                     # for i in range(NUM_AGENTS):  # store agent end positions
-                    #     tmp_agent_maxfit_final[i].coord.x = max_p[i].coord.x
-                    #     tmp_agent_maxfit_final[i].coord.y = max_p[i].coord.y
-                    #     tmp_agent_maxfit_final[i].heading.x = max_p[i].heading.x
-                    #     tmp_agent_maxfit_final[i].heading.y = max_p[i].heading.y
-                    #     tmp_agent_maxfit_final[i].inspire = max_p[i].inspire
                     tmp_agent_maxfit_final = deepcopy(max_p)
 
                 # Average fitness of generation
@@ -334,12 +324,6 @@ class SelfAssembly:
                     max_gen = fitness[ind]
                     maxID = ind
                     # store initial and final agent positions
-                    # for i in range(NUM_AGENTS):
-                    #     agent_maxfit[i].coord.x = tmp_agent_maxfit_final[i].coord.x
-                    #     agent_maxfit[i].coord.y = tmp_agent_maxfit_final[i].coord.y
-                    #     agent_maxfit[i].heading.x = tmp_agent_maxfit_final[i].heading.x
-                    #     agent_maxfit[i].heading.y = tmp_agent_maxfit_final[i].heading.y
-                    #     agent_maxfit[i].inspire = tmp_agent_maxfit_final[i].inspire
                     agent_maxfit = deepcopy(tmp_agent_maxfit_final)
                     tmp_initial = agent_maxfit.copy()
                 else:
