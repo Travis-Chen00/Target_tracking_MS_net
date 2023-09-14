@@ -321,12 +321,13 @@ class SelfAssembly:
 
         # evolutionary runs
         for gen in range(MAX_GENS):
-            max_gen = 0.0
-            avg = 0.0
+            max_gen = [0.0] * REPETITION
+            avg = [0.0] * REPETITION
             maxID = [0] * REPETITION
             fitness_count = 0
 
             temp_p = deepcopy(p_initial)
+            best_positions_for_reps = [None] * REPETITION  # 为每个rep存储最佳位置
 
             for rep in range(REPETITION):
                 best_position_for_current_rep = None
@@ -350,14 +351,14 @@ class SelfAssembly:
                         tmp_agent_maxfit_final[rep] = max_p[rep].copy()
 
                     # Average fitness of generation
-                    avg += fitness[rep][ind]
+                    avg[rep] += fitness[rep][ind]
 
                     # store individual with maximum fitness
-                    if fitness[rep][ind] > max_gen:
-                        max_gen = fitness[rep][ind]
+                    if fitness[rep][ind] > max_gen[rep]:
+                        max_gen[rep] = fitness[rep][ind]
                         maxID[rep] = ind
                         agent_maxfit[rep] = tmp_agent_maxfit_final[rep].copy()
-                        best_position_for_current_rep = deepcopy(agent_maxfit)
+                        best_positions_for_reps[rep] = tmp_agent_maxfit_final[rep].copy()
                     else:
                         fitness_count += 1
 
@@ -366,11 +367,11 @@ class SelfAssembly:
                         self.minimalSurprise.catastrophe(ind, rep)
                         fitness_count = 0
 
-                    print("Score for generation: ", gen + 1, " Repetition: ", rep, "Pop: ", ind, "Score: ", max_gen)
+                    print("Score for generation: ", gen + 1, " Repetition: ", rep, "Pop: ", ind, "Score: ", max_gen[rep])
 
                 # 使用当前重复的最佳位置更新p_initial
-                if best_position_for_current_rep is not None:
-                    p_initial = best_position_for_current_rep.copy()
+                if best_positions_for_reps[rep] is not None:
+                    p_initial = best_positions_for_reps.copy()
 
             # End population loop
 
