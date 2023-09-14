@@ -1,16 +1,15 @@
 # experimental setup
-MUTATION = 0.2          # 0.1 - mutation rate
+MUTATION = 0.3          # 0.1 - mutation rate
 CATASTROPHE = 0.4       # Catastrophe rate
 
 POP_SIZE = 5000  # population
+REPETITION = 10
 
 MAX_TIME = 10   # time per run
 MAX_GENS = 100  # maximum generations
 
 NUM_AGENTS = 10
 AIM_NUM = 1
-# # Threshold to determine movement
-# Threshold = 0.67
 
 # movement
 STRAIGHT = 0
@@ -26,13 +25,6 @@ S3 = 3  # 2 cells forward
 S4 = 4  # 2 cells forward right
 S5 = 5  # 2 cells forward left
 S6 = 6  # right of agent
-
-# S_t = 0
-# S_f = 1
-# S_b = 2
-# S_r = 3
-# S_l = 4
-# S_P = 5  # Temperature sensor
 
 PI = 3.14159265
 

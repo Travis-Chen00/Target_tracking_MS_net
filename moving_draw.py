@@ -36,9 +36,9 @@ def moving(agents, target, sizeX, sizeY):
 
             plt.clf()
             ax = fig.add_subplot(111)
-            color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 235]) / 255.0
+            color_grid = np.full((sizeX + 2, sizeY + 2, 3), [188, 216, 255]) / 255.0
 
-            RED_COLOR = np.array([222, 71, 71]) / 255.0
+            RED_COLOR = np.array([192, 220, 240]) / 255.0
             ORANGE_COLOR = np.array([255, 165, 100]) / 255.0
 
             for tgt in range(len(target[gen])):
@@ -68,16 +68,6 @@ def moving(agents, target, sizeX, sizeY):
                                 color_grid[y + dy, x + dx] = RED_COLOR
                             elif dist < 3 + TARGET_SIZE:
                                 color_grid[y + dy, x + dx] = ORANGE_COLOR
-
-                if gen == 0:
-                    filename = "Initial " + "Target: " + str(target[gen][tgt][0]) + ", " + str(
-                        target[gen][tgt][1]) + " Time:" + str(t)
-                    ax.set_title(filename)
-                else:
-                    filename = "Target: " + str(target[gen][tgt][0]) + ", " + str(target[gen][tgt][1]) + " Time:" + str(
-                        t)
-                    move_num += 1
-                    ax.set_title(filename)
 
                 circle = Circle((x, y), TARGET_SIZE - 0.78, color='red')
                 ax.add_patch(circle)
@@ -118,7 +108,7 @@ def moving(agents, target, sizeX, sizeY):
     plt.close()
 
     # Create videos
-    with imageio.get_writer('moving/8_13/test_data/TAMS_movie.gif', fps=15) as writer:
+    with imageio.get_writer('moving/8_13/test_data/TAMS.mp4', fps=15) as writer:
         for filename in image_files:
             image = imageio.imread(filename)
             writer.append_data(image)
@@ -138,27 +128,16 @@ def update_heatmap_position(heatmap, target, hori, vertical):
     # Update heatmap values based on the distance from the target
     def update_values(x, y, dist):
         if in_boundary(x, y):
-            if dist < 2:
+            if dist < 1 + TARGET_SIZE:
                 heatmap[x][y] = HIGH
-            elif dist < 4:
+            elif dist < 3 + TARGET_SIZE:
                 heatmap[x][y] = MEDIUM
 
-    # Handle the common logic for updating values
-    def handle_case(limit_x, limit_y):
-        for dx in range(-limit_x, limit_x + 1):
-            for dy in range(-limit_y, limit_y + 1):
-                x, y = x_target + dx, y_target + dy
-                dist = max(np.abs(dx), np.abs(dy))
-
-                update_values(x, y, dist)
-
-    # Check cases and apply the required logic
-    if np.abs(hori) >= 4 and np.abs(vertical) >= 4:
-        handle_case(4, 4)
-    elif np.abs(hori) < 4:
-        handle_case(np.abs(hori), 4)
-    elif np.abs(vertical) < 4:
-        handle_case(4, np.abs(vertical))
+    for dx in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
+        for dy in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
+            x, y = x_target + dx, y_target + dy
+            dist = max(np.abs(dx), np.abs(dy))
+            update_values(x, y, dist)
 
 
 def parse_colon_separated_line(line):
@@ -205,7 +184,7 @@ def write_csv_data(directory, csv_data):
 
     df = pd.read_csv(csv_file)
     df_T = df.set_index('Timestep').T
-    df_T.to_csv(os.path.join(directory, 'transposed_output.csv'))
+    df_T.to_csv(os.path.join(directory, '50_TAMS_transposed_output.csv'))
 
 
 if __name__ == "__main__":
@@ -239,9 +218,8 @@ if __name__ == "__main__":
                 "MEDIUM": sum(get_agent_value(agent, heatmap) == MEDIUM for agent in agent_p[gen][t]),
                 "HIGH": sum(get_agent_value(agent, heatmap) == HIGH for agent in agent_p[gen][t])
             } for t in range(MAX_TIME)])
+            heatmap = [[LOW for _ in range(sizeY)] for _ in range(sizeX)]  # Reset
 
-            write_csv_data(directory, csv_data)
-
-        heatmap = [[LOW for _ in range(sizeY)] for _ in range(sizeX)]  # Reset
+        write_csv_data(directory, csv_data)
 
     moving(agent_p, total_target, sizeX, sizeY)

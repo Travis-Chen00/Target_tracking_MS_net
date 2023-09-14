@@ -8,13 +8,13 @@ class Action:
         self.hidden = hidden
         self.output = output
 
-        self.weight_actionNet_layer0 = np.zeros((POP_SIZE, ACT_CONNECTIONS), dtype=float)
-        self.weight_actionNet_layer1 = np.zeros((POP_SIZE, self.input * self.hidden), dtype=float)
-        self.weight_actionNet_layer2 = np.zeros((POP_SIZE, self.hidden * self.output), dtype=float)
+        self.weight_actionNet_layer0 = np.zeros((REPETITION, POP_SIZE, ACT_CONNECTIONS), dtype=float)
+        self.weight_actionNet_layer1 = np.zeros((REPETITION, POP_SIZE, self.input * self.hidden), dtype=float)
+        self.weight_actionNet_layer2 = np.zeros((REPETITION, POP_SIZE, self.hidden * self.output), dtype=float)
 
         self.current_action = np.zeros((NUM_AGENTS, MAX_TIME), dtype=int)
 
-    def propagate_action_net(self, layer_0, layer_1, layer_2, input):
+    def propagate_action_net(self, layer_0, layer_1, layer_2, input, rep):
         """
             Propagation of the action network
             Usage:

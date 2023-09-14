@@ -13,11 +13,10 @@ OUTPUTP = 5  # output prediction network (14 sensor predictions + 1 temperature)
 
 ACT_CONNECTIONS = 56   # INPUA * HIDDENA
 PRE_CONNECTIONS = 78   # maximum connections
-# (224 per layer: 1 per INPUTP for each HIDDENP (15x14) + recurrent --> 14 extra values)
 
 SENSORS = 6    # 14 agent sensors
 
-Heat_alpha = [0.2, 0.7, 0.1]    # Heat rate for different zones
+Heat_alpha = [0.25, 0.7, 0.05]    # Heat rate for different zones
 Heat_int = [0.54, 0.75, 0.87]
 
 TARGET_SIZE = 1

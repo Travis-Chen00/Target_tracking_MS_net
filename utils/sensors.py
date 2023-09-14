@@ -32,62 +32,6 @@ class Sensors:
             y -= self.size_Y
         return y
 
-    def sensorModelSTD(self, i, grid, p):
-        """
-            Usage sensor model with 6 binary values in heading direction
-            :param i: index of current agent
-            :param grid: array with agents positions [0 --> Empty]
-            :param p: agent
-            :return : sensor value
-        """
-        sensors = [0] * SENSORS
-
-        # short range forward
-        dx = self.adjustXPosition(p[i].coord.x + p[i].heading.x)
-        dy = self.adjustYPosition(p[i].coord.y + p[i].heading.y)
-
-        # long range forward
-        dxl = self.adjustXPosition(p[i].coord.x + 2 * p[i].heading.x)
-        dyl = self.adjustYPosition(p[i].coord.y + 2 * p[i].heading.y)
-
-        # points for left and right sensors
-        dyplus = self.adjustYPosition(p[i].coord.y + 1)
-        dymin = self.adjustYPosition(p[i].coord.y - 1)
-
-        dxplus = self.adjustXPosition(p[i].coord.x + 1)
-        dxmin = self.adjustXPosition(p[i].coord.x - 1)
-
-        # forward looking sensor / in direction of heading
-        sensors[S0] = grid[dx][dy]
-        sensors[S3] = grid[dxl][dyl]
-
-        # headings in x-direction (i.e., y equals 0)
-        if p[i].heading.y == 0:
-            if p[i].heading.x == 1:
-                sensors[S2] = grid[dx][dyplus]
-                sensors[S5] = grid[dxl][dyplus]
-                sensors[S1] = grid[dxl][dymin]
-                sensors[S4] = grid[dxl][dymin]
-            else:
-                sensors[S1] = grid[dx][dyplus]
-                sensors[S4] = grid[dxl][dyplus]
-                sensors[S2] = grid[dx][dymin]
-                sensors[S5] = grid[dxl][dymin]
-
-        elif p[i].heading.x == 0:
-            if p[i].heading.y == 1:
-                sensors[S1] = grid[dxplus][dy]
-                sensors[S4] = grid[dxplus][dyl]
-                sensors[S2] = grid[dxmin][dy]
-                sensors[S5] = grid[dxmin][dyl]
-            else:
-                sensors[S2] = grid[dxplus][dy]
-                sensors[S5] = grid[dxplus][dyl]
-                sensors[S1] = grid[dxmin][dy]
-                sensors[S4] = grid[dxmin][dyl]
-
-        return sensors
-
     # STD14: 14 Sensors
     #   Toward west
     #   5    3   4
@@ -147,66 +91,5 @@ class Sensors:
             else:                       # Toward West
                 sensors[S3] = intensity[dxplus][int(p[i].coord.y)]
                 sensors[S4] = intensity[dxmin][int(p[i].coord.y)]
-
-        return sensors
-
-    def sensorModelSTDSL(self, i, grid, p):
-        """
-            Usage: sensor model with 8 sensors covering Moore neighborhood
-            :param i: index of current agent
-            :param grid: array with agents positions [0 --> Empty]
-            :param p: agent
-            :return : sensor value
-        """
-        sensors = [0] * SENSORS
-
-        dx = self.adjustXPosition(p[i].coord.x + p[i].heading.x)
-        dy = self.adjustYPosition(p[i].coord.y + p[i].heading.y)
-
-        # points for left and right sensors
-        dyplus = self.adjustYPosition(p[i].coord.y + 1)
-        dymin = self.adjustYPosition(p[i].coord.y - 1)
-
-        dxplus = self.adjustXPosition(p[i].coord.x + 1)
-        dxmin = self.adjustXPosition(p[i].coord.x - 1)
-
-        # short range backwards
-        dxb = self.adjustXPosition(p[i].coord.x - p[i].heading.x)
-        dyb = self.adjustYPosition(p[i].coord.y - p[i].heading.y)
-
-        # forward looking sensor --> in direction of heading
-        sensors[S0] = hj[dx][dy]      # Forward short
-        sensors[S_b] = grid[dxb][dyb]    # Backward short
-
-        if p[i].heading.y == 0:
-            if p[i].heading.x == 1:
-                sensors[S2] = grid[dx][dyplus]
-                sensors[S1] = grid[dx][dymin]
-                sensors[S4] = grid[p[i].coord.x][dyplus]
-                sensors[S3] = grid[p[i].coord.x][dymin]
-                sensors[S7] = grid[dxb][dyplus]
-                sensors[S6] = grid[dxb][dymin]
-            else:
-                sensors[S1] = grid[dx][dyplus]
-                sensors[S2] = grid[dx][dymin]
-                sensors[S3] = grid[p[i].coord.x][dyplus]
-                sensors[S4] = grid[p[i].coord.x][dymin]
-                sensors[S6] = grid[dxb][dyplus]
-                sensors[S7] = grid[dxb][dymin]
-        elif p[i].heading.x == 0:
-            if p[i].heading.y == 1:
-                sensors[S1] = grid[dxplus][dy]
-                sensors[S2] = grid[dxmin][dy]
-                sensors[S3] = grid[dxplus][p[i].coord.y]
-                sensors[S4] = grid[dxmin][p[i].coord.y]
-                sensors[S7] = grid[dxmin][dyb]
-                sensors[S6] = grid[dxplus][dyb]
-            else:
-                sensors[S2] = grid[dxplus][dy]
-                sensors[S1] = grid[dxmin][dy]
-                sensors[S4] = grid[dxplus][p[i].coord.y]
-                sensors[S3] = grid[dxmin][p[i].coord.y]
-                sensors[S6] = grid[dxmin][dyb]
-                sensors[S7] = grid[dxplus][dyb]
 
         return sensors
