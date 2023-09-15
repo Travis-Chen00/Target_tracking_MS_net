@@ -21,7 +21,7 @@ class SelfAssembly:
         self.heat_intensity = [[[0] * int(self.sizeY) for _ in range(int(self.sizeX))] for _ in range(REPETITION)]
 
         # Set the coordinates of target / embedded into swarms
-        self.target = [[0, 0] for _ in range(AIM_NUM)]
+        self.target = [[[0, 0] for _ in range(AIM_NUM)] for _ in range(REPETITION)]
         self.tmp_target = [[0, 0] for _ in range(AIM_NUM)]
 
         # Evolution count
@@ -84,7 +84,7 @@ class SelfAssembly:
                 grid[int(self.p[i].coord.x)][int(self.p[i].coord.y)] = 1
 
             for t in range(AIM_NUM):
-                grid[self.target[t][0]][self.target[t][1]] = 1  # Set target location
+                grid[self.target[rep][t][0]][self.target[rep][t][1]] = 1  # Set target location
 
             # Iterate all agents
             # Execute agents one by one in each timeStep
@@ -202,7 +202,7 @@ class SelfAssembly:
             f.write(f"Pop: {ind} \n")
 
             for t in range(AIM_NUM):
-                f.write(f"Target {t}: {self.target[t][0]}, {self.target[t][1]} \n")
+                f.write(f"Target {t}: {self.target[rep][t][0]}, {self.target[rep][t][1]} \n")
 
             f.write(f"Fitness: {self.tmp_fit[rep]} \n")
             f.write(f"\n")
@@ -401,7 +401,7 @@ class SelfAssembly:
             #     self.update_heatmap(tmp_initial)
             self.update_heatmap(p_initial)
 
-    def target_init(self):
+    def target_init(self, rep):
         grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
         for i in range(AIM_NUM):
             block = True
@@ -418,7 +418,7 @@ class SelfAssembly:
                 # Check the distance with all previous targets
                 for j in range(i):
                     target_dis = np.linalg.norm(
-                        np.array([self.target[j][0], self.target[j][1]]) - np.array([temp_x, temp_y]))
+                        np.array([self.target[rep][j][0], self.target[rep][j][1]]) - np.array([temp_x, temp_y]))
                     if target_dis <= 3:
                         valid_position = False
                         break
@@ -426,12 +426,13 @@ class SelfAssembly:
                 # If the position is valid, break the loop and finalize the position of this target
                 if valid_position:
                     block = False
-                    self.target[i][0] = temp_x
-                    self.target[i][1] = temp_y
+                    self.target[rep][i][0] = temp_x
+                    self.target[rep][i][1] = temp_y
                     grid[temp_x][temp_y] = 1  # set grid cell occupied
 
     def location_init(self):
-        self.target_init()
+        for rep in range(REPETITION):
+            self.target_init(rep)
         p_initial = [[Agent(NOTYPE, Pos(0, 0), Pos(0, 0)) for _ in range(NUM_AGENTS)] for _ in range(REPETITION)]
         grid = [[[0] * int(self.sizeY) for _ in range(int(self.sizeX))] for _ in range(REPETITION)]
 
@@ -441,7 +442,7 @@ class SelfAssembly:
         # Set target locations and nearby heat values
         for rep in range(REPETITION):
             for t in range(AIM_NUM):
-                target_x, target_y = self.target[t]
+                target_x, target_y = self.target[rep][t]
                 self.heatmap[rep][target_x][target_y] = AIM
 
                 for dx in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
@@ -535,7 +536,7 @@ class SelfAssembly:
         self.heat_intensity = [[[0 for _ in range(self.sizeY)] for _ in range(self.sizeX)] for _ in range(REPETITION)]
 
         for rep in range(REPETITION):
-            for tgt in targets:
+            for tgt in targets[rep]:
                 tx, ty = int(tgt[0]), int(tgt[1])
 
                 for dx in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):  # Assuming a radius of 4 as in the previous code
@@ -611,10 +612,10 @@ class SelfAssembly:
 
         for rep in range(REPETITION):
             for t in range(AIM_NUM):
-                self.target[t][0], self.target[t][1] = self.target_move(agent[rep], self.target[t][0], self.target[t][1])
+                self.target[rep][t][0], self.target[rep][t][1] = self.target_move(agent[rep], self.target[rep][t][0], self.target[rep][t][1])
 
-                target_x = self.target[t][0]
-                target_y = self.target[t][1]
+                target_x = self.target[rep][t][0]
+                target_y = self.target[rep][t][1]
 
                 # Set target surroundings heatmap values
                 for dx in range(-3 - TARGET_SIZE, 4 + TARGET_SIZE):
@@ -633,4 +634,4 @@ class SelfAssembly:
                 # Handle the target itself
                 self.heatmap[rep][target_x][target_y] = AIM
 
-        self.update_heat_intensity(self.target)
+            self.update_heat_intensity(self.target)
