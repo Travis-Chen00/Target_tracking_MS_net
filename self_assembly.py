@@ -397,9 +397,9 @@ class SelfAssembly:
             # else:
             #     self.target_disappear()
 
-            # if gen > 0 and gen % 2 == 0:
-            #     self.update_heatmap(tmp_initial)
-            self.update_heatmap(p_initial)
+            if gen > 0 and gen % 2 == 0:
+                self.update_heatmap(tmp_initial)
+            # self.update_heatmap(p_initial)
 
     def target_init(self, rep):
         grid = [[0] * int(self.sizeY) for _ in range(int(self.sizeX))]
